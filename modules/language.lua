@@ -22,25 +22,22 @@ setmetatable(this,{
 
 function this:_key(key, default)
 	local tab = default and self._ENG or self._
-	for _, t in ipairs(key) do
-		-- io.write("trying "..t)
+	for table_key, t in ipairs(key) do
 		local b = tab[t]
 		if not b then break end
 		if type(b) == "table" then
-			-- io.write("was table")
 			tab = b
 		else
-			-- io.write("found string")
 			return b
 		end
 	end
 	if self.isEN or default then 
+		jhud.log("No translation for "..table.concat(key,"->"))
 		return self._._.trans_error 
 	else
-		return self._key(key, true)
+		return self:_key(key, true)
 	end
 end
-
 function this:affix(str, chars)
 	if not str then return self._._.affix_error end
 	chars = chars or "[]"
