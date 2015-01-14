@@ -1,25 +1,20 @@
 function this:__init()
 	if not _G.UnitNetworkHandler then return end
 	self.hooks = {}
-	local oldfunc = UnitNetworkHandler.add_synced_team_upgrade
-	function UnitNetworkHandler:add_synced_team_upgrade(category, funcname, data, sender)
-		if tostring(category) == "1337" then
-			jhud.log("ayy", funcname, data, sender)
-			-- for i,v in pairs(self.hooks) do
-				-- if i == funcname then
-					-- pcall(funcname, data)
-					-- break
-				-- end
-			-- end
-		else 
-			oldfunc(self, category, funcname, data, sender)
+	jhud.hook("UnitNetworkHandler","add_synced_team_upgrade", function(self, category, funcname, data, sender)
+		if category and tostring(category) and category:sub(1,4) == "1337" then
+			jhud.dlog("Network sync method called: ", funcname, data)
+			if self.hooks[funcname] then
+				self.hooks[funcname](data)
+			end
+			return true
 		end
-	end
+	end)
 end
 
 function this:send(name, data, nofeedback)
-	if not managers.network and managers.network:session()then
-		managers.network:session():send_to_peers_synched("add_synced_team_upgrade", "1337", name, data)
+	if not managers.network and managers.network:session() and name and data then
+		managers.network:session():send_to_peers_synched("add_synced_team_upgrade", "1337"..name, data, "ayy lmao*")
 	end
 	if not nofeedback and self.hooks[name] then self.hooks[name](data) end
 	return true
@@ -49,5 +44,3 @@ end
 function this:isSP()
 	return Global.game_settings.single_player or false
 end
-
-net = this

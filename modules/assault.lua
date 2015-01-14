@@ -5,7 +5,7 @@ end
 local cautda = {[0] = "stealth", "caution", "danger"}
 
 function this:getHeistStatus() 
-	if not net:isServer() then return end
+	if not jhud.net:isServer() then return end
 	if managers.groupai and managers.groupai:state() then
 		local assault = managers.groupai:state()._task_data.assault
 		if assault.phase then
@@ -68,8 +68,7 @@ function this:updateTag(t, dt)
 		end
 		if (self.heistStatus ~= lastStatus) then
 			lastStatus = self.heistStatus
-			net:send("jhud.assault.heistStatus", jhud.assault.heistStatus, true)
-			self:updateTagText(self.heistStatus)
+			jhud.net:send("jhud.assault.heistStatus", self.heistStatus)
 		end
 		if lastCasing ~= isCasing then
 			lastCasing = isCasing
@@ -77,7 +76,7 @@ function this:updateTag(t, dt)
 		end
 		if lastCalling ~= self.calling then
 			lastCalling = self.calling
-			net:send("jhud.assault.calling", self.calling)
+			jhud.net:send("jhud.assault.calling", self.calling)
 		end
 	else
 		lastStatus = nil
@@ -104,12 +103,11 @@ function this:updateTagText()
 end
 local lastSucessfulPagerNR = 0
 function this:updateDangerData(t, dt)
-	if not net:isServer() then return end
+	if not jhud.net:isServer() then return end
 	self.pagersUsed = self:getPagersUsed()
 	if self.pagersUsed ~= lastSucessfulPagerNR then
 		lastSucessfulPagerNR = self.pagersUsed
 		self.pagersActive = self.pagersActive - 1
-		self:updateTagText()
 	end
 	self.uncool = 0
 	self.caution = 0
@@ -140,43 +138,41 @@ function this:__update(t, dt)
 end
 
 function this:__init()
+	--Number of pagers used
+	--This number includes the number of pagers that will need to be used
+	--ie: pagercop dies during ecm, this number get added to anyway
 	self.pagersNR = 0
-	if net:isServer() then
-		self.pagersActive = 0
-		self.copsWhoHaveOrWillInTheFuturePager = {}
-		jhud.debug = true	
+	if jhud.net:isServer() then
+		self.pagersActive = 0 --Number of pagers that are being answered or need to be answered
+		self.deadCopsWithPagers = {}
 		local _self = self
 		if _G.CopBrain then
-			local hook = CopBrain.begin_alarm_pager
-			function CopBrain:begin_alarm_pager(reset)
+			jhud.hook("CopBrain", "begin_alarm_pager", function(self, reset)
 				local has = false
-				for i,v in pairs(_self.copsWhoHaveOrWillInTheFuturePager) do
+				for i,v in pairs(_self.deadCopsWithPagers) do
 					if v == self then
 						has = true
 						break
 					end
 				end
 				if not has then
-					table.insert(_self.copsWhoHaveOrWillInTheFuturePager, self)
+					table.insert(_self.deadCopsWithPagers, self)
 					jhud.dlog("pagercop died and will pager")
 					_self.pagersActive = _self.pagersActive + 1
-					_self.pagersNR = _self.pagersNR + 1
-					net:send("jhud.assault.pagersNR", _self.pagersNR, true)
+					jhud.net:send("jhud.assault.pagersNR", _self.pagersNR + 1)
 				end
-				hook(self, reset)
-			end
+			end)
 		end
-	else
-		net:hook("jhud.assault.pagersNR", function(data)
-			self.pagersNR = data
-			self:updateTagText()
-		end)
-		net:hook("jhud.assault.heistStatus", function(data)
-			self.heistStatus = data
-			self:updateTagText()
-		end)
 	end
-	net:hook("jhud.assault.calling", function(data)
+	jhud.net:hook("jhud.assault.heistStatus", function(data)
+		self.heistStatus = data
+		self:updateTagText()
+	end)
+	jhud.net:hook("jhud.assault.pagersNR", function(data)
+		self.pagersNR = data
+		self:updateTagText()
+	end)
+	jhud.net:hook("jhud.assault.calling", function(data)
 		self.calltext:set_visible(data > 0)
 		self.calltext:set_text(callingText)
 	end)

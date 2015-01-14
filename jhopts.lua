@@ -1,12 +1,13 @@
 jhud.options = {
 	modules = { --This is the list of modules that get loaded. comment out any of them to disable them
 				--words in parenthesis are required modules
-		"language",		--[REQUIRED] DO NOT REMOVE THIS LIBRARY
-		"bind",			--[RECCOMENDED] Allows you to bind keys
-		"network",		--[RECCOMENDED] Makes a lot of stuff work
-		"assault",		--(net) Gives heist status at the top of the screen
-		"chat",			--disabling this will remove johnhud from printing to your chat
-		"voice",		--(bind) Allows you to bind keys for voicelines
+		"language",		--[REQUIRED]
+		"hook",			--[REQUIRED]
+		"net",		--[REQUIRED]
+		"bind",			-- Allows you to bind keys
+		"assault",		-- Gives heist status at the top of the screen
+		"chat",			-- disabling this will remove johnhud from printing to your chat
+		"voice",		-- (bind) Allows you to bind keys for voicelines
 	},
 	language = "EN",
 	m = {
@@ -44,12 +45,6 @@ jhud.options = {
 			},
 			showpagers = true,
 			uppercase = true,
-		},
-		chat = {
-		
-		},
-		voice = {
-		
 		}
 	}
 }
