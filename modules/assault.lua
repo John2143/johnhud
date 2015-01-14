@@ -1,10 +1,11 @@
-function this:pagersUsed()
+function this:getPagersUsed()
 	return managers.groupai and (managers.groupai:state():get_nr_successful_alarm_pager_bluffs()) or -1
 end
 
 local cautda = {[0] = "stealth", "caution", "danger"}
 
 function this:getHeistStatus() 
+	if not net:isServer() then return end
 	if managers.groupai and managers.groupai:state() then
 		local assault = managers.groupai:state()._task_data.assault
 		if assault.phase then
@@ -37,7 +38,7 @@ local lastCasing = false
 local lastCalling
 local callingText = L("assault","calling")
 function this:updateTag(t, dt)
-	self.heistStatus = self:getHeistStatus()
+	self.heistStatus = self:getHeistStatus() or self.heistStatus
 	local isCasing = managers.hud and managers.hud._hud_assault_corner._casing
 	if self.heistStatus ~= "none" then
 		if not self.panel then 
@@ -66,6 +67,8 @@ function this:updateTag(t, dt)
 			}
 		end
 		if (self.heistStatus ~= lastStatus) then
+			lastStatus = self.heistStatus
+			net:send("jhud.assault.heistStatus", jhud.assault.heistStatus, true)
 			self:updateTagText(self.heistStatus)
 		end
 		if lastCasing ~= isCasing then
@@ -74,8 +77,7 @@ function this:updateTag(t, dt)
 		end
 		if lastCalling ~= self.calling then
 			lastCalling = self.calling
-			self.calltext:set_visible(self.calling > 0)
-			self.calltext:set_text(callingText)
+			net:send("jhud.assault.calling", self.calling)
 		end
 	else
 		lastStatus = nil
@@ -85,10 +87,9 @@ function this:updateTag(t, dt)
 		self.calltext = nil
 	end
 end
-function this:updateTagText(heistStatus)
+function this:updateTagText()
 	if not self.textpanel then return end
-	lastStatus = heistStatus or self.heistStatus
-	local text = L("assault", lastStatus)
+	local text = L("assault", self.heistStatus)
 	if self.whisper then
 		if self.config.showpagers and self.pagersNR > 0 then 
 			text = text.." "..self.pagersNR..(jhud.chat and jhud.chat.icons.Skull or "p") 
@@ -99,13 +100,14 @@ function this:updateTagText(heistStatus)
 		text = L:affix(text:upper())
 	end
 	self.textpanel:set_text(text)
-	self.textpanel:set_color(self.config.color[heistStatus] or Color(1,1,1))
+	self.textpanel:set_color(self.config.color[self.heistStatus] or Color(1,1,1))
 end
 local lastSucessfulPagerNR = 0
 function this:updateDangerData(t, dt)
-	local pagers = self:pagersUsed()
-	if pagers ~= lastSucessfulPagerNR then
-		lastSucessfulPagerNR = pagers
+	if not net:isServer() then return end
+	self.pagersUsed = self:getPagersUsed()
+	if self.pagersUsed ~= lastSucessfulPagerNR then
+		lastSucessfulPagerNR = self.pagersUsed
 		self.pagersActive = self.pagersActive - 1
 		self:updateTagText()
 	end
@@ -138,21 +140,44 @@ function this:__update(t, dt)
 end
 
 function this:__init()
-	-- jhud.debug = true
-	self.pagersActive = 0
 	self.pagersNR = 0
-	local _self = self
-	if _G.CopBrain then
-		local hook = CopBrain.begin_alarm_pager
-		function CopBrain:begin_alarm_pager(reset)
-			if reset or not self._alarm_pager_has_run then
-				jhud.dlog("pagercop died")
-				_self.pagersActive = _self.pagersActive + 1
-				_self.pagersNR = _self.pagersNR + 1
-			else
-				jhud.dlog("pagercop with no active pager died")
+	if net:isServer() then
+		self.pagersActive = 0
+		self.copsWhoHaveOrWillInTheFuturePager = {}
+		jhud.debug = true	
+		local _self = self
+		if _G.CopBrain then
+			local hook = CopBrain.begin_alarm_pager
+			function CopBrain:begin_alarm_pager(reset)
+				local has = false
+				for i,v in pairs(_self.copsWhoHaveOrWillInTheFuturePager) do
+					if v == self then
+						has = true
+						break
+					end
+				end
+				if not has then
+					table.insert(_self.copsWhoHaveOrWillInTheFuturePager, self)
+					jhud.dlog("pagercop died and will pager")
+					_self.pagersActive = _self.pagersActive + 1
+					_self.pagersNR = _self.pagersNR + 1
+					net:send("jhud.assault.pagersNR", _self.pagersNR, true)
+				end
+				hook(self, reset)
 			end
-			hook(self, reset)
 		end
+	else
+		net:hook("jhud.assault.pagersNR", function(data)
+			self.pagersNR = data
+			self:updateTagText()
+		end)
+		net:hook("jhud.assault.heistStatus", function(data)
+			self.heistStatus = data
+			self:updateTagText()
+		end)
 	end
+	net:hook("jhud.assault.calling", function(data)
+		self.calltext:set_visible(data > 0)
+		self.calltext:set_text(callingText)
+	end)
 end
