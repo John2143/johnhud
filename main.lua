@@ -1,5 +1,11 @@
 jhud = jhud or {}
-(jhud.log or io.write)("JohnHUD started.")
+jhud.log = function(...)
+	for i,v in pairs{...} do
+		io.write(tostring(v).."\t")
+	end
+	io.write("\n")
+end
+jhud.log("JohnHUD started.")
 
 jhud.createPanel = function()
 	if not RenderSettings then return end
@@ -8,11 +14,8 @@ jhud.createPanel = function()
 end
 jhud.keyboard = Input:keyboard()
 
-jhud.log = function(...)
-	for i,v in pairs{...} do
-		io.write(tostring(v).."\t")
-	end
-	io.write("\n")
+jhud.log2 = function(...)
+	jhud.log(string.format(...))
 end
 jhud.dlog = function(...)
 	if not jhud.debug then return end
@@ -43,16 +46,11 @@ if jhud.chat and jhud.options.m._.showload then
 	jhud.chat(jhud.lang("start"))
 end
 
-if GameStateMachine then 
-	local oldgs = GameStateMachine.update
-	function GameStateMachine:update(t, dt)
-		oldgs(self, t, dt)
-		for i,v in pairs(jhud) do
-			if type(v) == "table" and v.__update then 
-				-- io.write("update", i)
-				local aaas, err = pcall(v.__update, v, t, dt) 
-				if err then jhud.log(err) end
-			end
+jhud.hook("GameStateMachine", "update", function()
+	for i,v in pairs(jhud) do
+		if type(v) == "table" and v.__update then 
+			local aaas, err = pcall(v.__update, v, t, dt) 
+			if err then jhud.log(err) end
 		end
 	end
-end
+end)
