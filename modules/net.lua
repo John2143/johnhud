@@ -1,11 +1,12 @@
 function this:__init()
 	if not _G.UnitNetworkHandler then return end
 	self.hooks = {}
-	jhud.hook("UnitNetworkHandler","add_synced_team_upgrade", function(self, category, funcname, data, sender)
-		if category and tostring(category) and category:sub(1,4) == "1337" then
-			jhud.dlog("Network sync method called: ", funcname, data)
-			if self.hooks[funcname] then
-				self.hooks[funcname](data)
+	jhud.hook("UnitNetworkHandler","add_synced_team_upgrade", function(self, a, data, c, sender)
+		if a and tostring(a) and a:sub(1,4) == "1337" then
+			local func = a:sub(5)
+			jhud.dlog("Network sync method called: ", func, data)
+			if self.hooks[func] then
+				self.hooks[func](data)
 			end
 			return true
 		end

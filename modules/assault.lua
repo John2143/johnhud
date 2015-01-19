@@ -103,7 +103,7 @@ function this:updateTagText()
 end
 local lastSucessfulPagerNR = 0
 function this:updateDangerData(t, dt)
-	if not jhud.net:isServer() then return end
+	if not (jhud.net:isServer() and self.pagersActive) then return end
 	self.pagersUsed = self:getPagersUsed()
 	if self.pagersUsed ~= lastSucessfulPagerNR then
 		lastSucessfulPagerNR = self.pagersUsed
@@ -138,6 +138,7 @@ function this:__update(t, dt)
 end
 
 function this:__init()
+	-- jhud.debug = true
 	--Number of pagers used
 	--This number includes the number of pagers that will need to be used
 	--ie: pagercop dies during ecm, this number get added to anyway
