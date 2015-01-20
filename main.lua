@@ -46,7 +46,7 @@ if jhud.chat and jhud.options.m._.showload then
 	jhud.chat(jhud.lang("start"))
 end
 
-jhud.hook("GameStateMachine", "update", function()
+jhud.hook("GameStateMachine", "update", function(GSMOBJ, t, dt)
 	for i,v in pairs(jhud) do
 		if type(v) == "table" and v.__update then 
 			local aaas, err = pcall(v.__update, v, t, dt) 
