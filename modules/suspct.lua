@@ -15,7 +15,7 @@ function this:getSuspicion(sus, usr)
 end
 local textheight = 30
 function this:__update(t, dt)
-	self.shd = self.shd or mangers.groupai:state()._suspicion_hud_data
+	self.shd = self.shd or managers.groupai:state()._suspicion_hud_data
 	if not self.shd then return end
 
 	jhud.debug = true
