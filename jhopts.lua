@@ -46,6 +46,10 @@ jhud.options = {
 			},
 			showpagers = true,
 			uppercase = true,
+		},
+		suspct = { --Stealth percent indicator
+			show100for = 4,		--How long to keep the 100% on your hud
+			num = 5,			--Max number of counters at once
 		}
 	}
 }
