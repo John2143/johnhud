@@ -22,11 +22,15 @@ jhud.dlog = function(...)
 	jhud.log("DEBUG: ",...)
 end
 
+dofile 'johnhud/cfg.lua'
 dofile 'johnhud/jhopts.lua'
+setmetatable(jhud.options,{
+	__index = jhud.defOptions
+})
 dofile 'johnhud/jhbinds.lua'
 
 for i,v in pairs(jhud.options.modules) do
-	if v then 
+	if v and not jhud.options.disabledModules[v] then 
 		-- if jhud[v] then io.write(string.format("=============MODULE %s RELOADED==============\n", v)) end
 		jhud[v] = {config = jhud.options.m[v]}
 		this = jhud[v]

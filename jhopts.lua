@@ -1,9 +1,9 @@
-jhud.options = {
+jhud.defOptions = {
 	modules = { --This is the list of modules that get loaded. comment out any of them to disable them
 				--words in parenthesis are required modules
 		"language",		--[REQUIRED]
 		"hook",			--[REQUIRED]
-		"net",		--[REQUIRED]
+		"net",			--[REQUIRED]
 		"suspct",		-- Shows suspicion percentages
 		"bind",			-- Allows you to bind keys
 		"assault",		-- Gives heist status at the top of the screen
@@ -40,16 +40,21 @@ jhud.options = {
 				color = Color(1, .1, .1)
 			},
 			danger = {
-				pager = 1,
-				uncool = 2,
-				questioning = 0,
+				--Change the text of the indicator when an event is happening
+				--Values
+				-- 0: Stealth
+				-- 1: Caution
+				-- 2: Danger
+				pager = 1, --A pager needs to be asnwered
+				uncool = 2, --A civ or cop is alerted
+				questioning = 0, --Someone is being detected
 			},
-			showpagers = true,
-			uppercase = true,
+			showpagers = true, --Show the #pagers in the indicator
+			uppercase = true, --Make the indicator uppercase
 		},
 		suspct = { --Stealth percent indicator
-			show100for = 4,		--How long to keep the 100% on your hud
-			num = 5,			--Max number of counters at once
+			show100for = 4, --How long to keep the 100% on your hud
+			num = 5, --Max number of counters at once
 		}
 	}
 }
