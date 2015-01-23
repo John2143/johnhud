@@ -19,8 +19,6 @@ function this:__update(t, dt)
 	if not self.shd then return end
 
 	jhud.debug = true
-	self.config = self.config or {}
-	self.config.show100for = 4
 
 	--This relies on the fact that you can
 	--never return to whisper after leaving
