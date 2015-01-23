@@ -12,7 +12,7 @@ function this:getHeistStatus()
 			jhud.assault.assaultWaveOccurred = true
 			return assault.phase
 		else
-			if self.whisper then
+			if jhud.whisper then
 				local state = 0
 				local function max(x)
 					state = math.max(state, x)
@@ -89,7 +89,7 @@ end
 function this:updateTagText()
 	if not self.textpanel then return end
 	local text = L("assault", self.heistStatus)
-	if self.whisper then
+	if jhud.whisper then
 		if self.config.showpagers and self.pagersNR > 0 then 
 			text = text.." "..self.pagersNR..(jhud.chat and jhud.chat.icons.Skull or "p") 
 		end
@@ -132,7 +132,6 @@ end
 
 function this:__update(t, dt)
 	if not managers then return end
-	self.whisper = managers.groupai and managers.groupai:state().whisper_mode and managers.groupai:state():whisper_mode()
 	self:updateDangerData(t, dt)
 	self:updateTag(t, dt)
 end

@@ -47,6 +47,7 @@ if jhud.chat and jhud.options.m._.showload then
 end
 
 jhud.hook("GameStateMachine", "update", function(GSMOBJ, t, dt)
+	jhud.whisper = managers.groupai and managers.groupai:state().whisper_mode and managers.groupai:state():whisper_mode()
 	for i,v in pairs(jhud) do
 		if type(v) == "table" and v.__update then 
 			local aaas, err = pcall(v.__update, v, t, dt) 
