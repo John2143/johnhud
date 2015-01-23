@@ -4,6 +4,7 @@ jhud.options = {
 		"language",		--[REQUIRED]
 		"hook",			--[REQUIRED]
 		"net",		--[REQUIRED]
+		"suspct",		-- Shows suspicion percentages
 		"bind",			-- Allows you to bind keys
 		"assault",		-- Gives heist status at the top of the screen
 		"chat",			-- disabling this will remove johnhud from printing to your chat
