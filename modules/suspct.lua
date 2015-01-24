@@ -4,7 +4,11 @@ end
 function this:getSuspicion(sus, usr)
 	if not sus then return 1 end
 	if usr then
-		return pct(sus[usr].status)
+		for i,v in pairs(sus) do
+			if v.u_suspect == usr then
+				return v.status
+			end
+		end
 	else
 		local most = 0
 		for k,x in pairs(sus) do
@@ -13,16 +17,19 @@ function this:getSuspicion(sus, usr)
 		return most
 	end
 end
+local lastWhisper = true
 local textheight = 30
+local lastSuspicion = {}
 function this:__update(t, dt)
+	if not (managers and managers.groupai and managers.groupai:state()) then return end
+	--This relies on the fact that you can
+	--never return to whisper after leaving
+	if not lastWhisper then return end 
 	self.shd = self.shd or managers.groupai:state()._suspicion_hud_data
 	if not self.shd then return end
 
-	jhud.debug = true
+	jhud.debug = true-----------------------------------------------------------------------------------------------------------------
 
-	--This relies on the fact that you can
-	--never return to whisper after leaving
-	if not self.lastWhisper then return end 
 	if not self.panel then 
 		local h = self.config.num*textheight
 		jhud.dlog("No panels")
@@ -39,24 +46,25 @@ function this:__update(t, dt)
 				font = tweak_data.hud_present.text_font,
 				font_size = tweak_data.hud_present.text_size
 			}
-			self.textpanels[i]:set_y((i-1)*textsize)
+			self.textpanels[i]:set_y((i-1)*textheight)
 		end
 	end
 	if self.textpanels then
-		if self.lastWhisper ~= jhud.whisper then
-			self.lastWhisper = jhud.whisper
+		if lastWhisper ~= jhud.whisper then
+			lastWhisper = jhud.whisper
 			for i,v in pairs(self.textpanels) do
 				v:set_visible(jhud.whisper)
 			end
 			if not jhud.whisper then return end
 		end	
-		local suspicionAmount = {} 
+		local suspicionAmount = {}
+		local osu = self.config.onlyshowyou
 		for i,v in pairs(self.shd) do
-			local sus = self:getSuspicion(v.suspects)
-			if sus == 1 and not self.times[i] then
-				self.times[i] = t	
+			local sus = self:getSuspicion(v.suspects, osu and jhud.localPlayer())
+			if sus == 1 and not self.times[i] and not osu then
+				self.times[i] = t
 			end
-			if sus ~= 1 or t < self.times[i] + self.config.show100for then
+			if sus ~= 1 or self.times[i] and t < self.times[i] + self.config.show100for then
 				table.insert(suspicionAmount, sus)
 			end
 		end
@@ -75,7 +83,7 @@ function this:__update(t, dt)
 		end
 	end
 end
+
 function this:__init()
-	self.lastWhisper = true
 	self.times = {}
 end
