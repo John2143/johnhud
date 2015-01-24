@@ -6,7 +6,9 @@ jhud.defOptions = {
 		"net",			--[REQUIRED]
 		"suspct",		-- Shows suspicion percentages
 		"bind",			-- Allows you to bind keys
-		"assault",		-- Gives heist status at the top of the screen
+		"assault",		--[RECCOMENDED] Gives heist status at the top of the screen
+						--	!!Instead of disabling this, simply change both of the showdurings to false
+						--    This will let people with the mod in your lobby still have the indicator
 		"chat",			-- disabling this will remove johnhud from printing to your chat
 		"voice",		-- (bind) Allows you to bind keys for voicelines
 	},
@@ -51,6 +53,11 @@ jhud.defOptions = {
 			},
 			showpagers = true, --Show the #pagers in the indicator
 			uppercase = true, --Make the indicator uppercase
+			showcalling = true,
+			showduring = {
+				stealth = true,
+				assault = true
+			}
 		},
 		suspct = { --Stealth percent indicator
 			show100for = 4, --How long to keep the 100% on your hud

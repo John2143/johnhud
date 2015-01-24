@@ -88,6 +88,14 @@ function this:updateTag(t, dt)
 end
 function this:updateTagText()
 	if not self.textpanel then return end
+	if not (jhud.whisper and 
+				(self.config.showduring.stealth) or
+				(self.config.showduring.assault)
+			)
+	then
+		self.textpanel:set_visible(false)
+		return
+	end
 	local text = L("assault", self.heistStatus)
 	if jhud.whisper then
 		if self.config.showpagers and self.pagersNR > 0 then 
@@ -173,7 +181,7 @@ function this:__init()
 		self:updateTagText()
 	end)
 	jhud.net:hook("jhud.assault.calling", function(data)
-		self.calltext:set_visible(data > 0)
+		self.calltext:set_visible(data > 0 and self.config.showcalling)
 		self.calltext:set_text(callingText)
 	end)
 end
