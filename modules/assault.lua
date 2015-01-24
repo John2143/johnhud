@@ -37,6 +37,8 @@ local lastStatus
 local lastCasing = false
 local lastCalling
 local callingText = L("assault","calling")
+local lastUncool
+local doUpdate = true
 function this:updateTag(t, dt)
 	self.heistStatus = self:getHeistStatus() or self.heistStatus
 	local isCasing = managers.hud and managers.hud._hud_assault_corner._casing
@@ -66,6 +68,11 @@ function this:updateTag(t, dt)
 				font_size = tweak_data.hud_present.text_size  + self.config.calling.text_size,
 			}
 		end
+		if lastUncool ~= self.uncool then
+			lastUncool = self.uncool
+			jhud.dlog("number of uncool people changed to "..self.uncool)
+			jhud.net:send("jhud.assault.uncool", self.uncool)
+		end
 		if (self.heistStatus ~= lastStatus) then
 			lastStatus = self.heistStatus
 			jhud.net:send("jhud.assault.heistStatus", self.heistStatus)
@@ -78,12 +85,15 @@ function this:updateTag(t, dt)
 			lastCalling = self.calling
 			jhud.net:send("jhud.assault.calling", self.calling)
 		end
+		if doUpdate then self:updateTagText() end
 	else
 		lastStatus = nil
 		self.panel = nil
 		self.textpanel = nil
 		self.callpanel = nil
 		self.calltext = nil
+		lastUncool = nil
+		lastCalling = nil
 	end
 end
 function this:updateTagText()
@@ -100,6 +110,9 @@ function this:updateTagText()
 	if jhud.whisper then
 		if self.config.showpagers and self.pagersNR > 0 then 
 			text = text.." "..self.pagersNR..(jhud.chat and jhud.chat.icons.Skull or "p") 
+		end
+		if self.config.showuncool and self.uncool > 0 then
+			text = text.." "..self.uncool.."!"
 		end
 		local detection = 0
 	end
@@ -173,15 +186,22 @@ function this:__init()
 		end
 	end
 	jhud.net:hook("jhud.assault.heistStatus", function(data)
-		self.heistStatus = data
-		self:updateTagText()
+		self.heistStatus = data --This does not need to be reset on host
+		self:updateTagTextNext()
 	end)
 	jhud.net:hook("jhud.assault.pagersNR", function(data)
 		self.pagersNR = data
-		self:updateTagText()
+		self:updateTagTextNext()
 	end)
 	jhud.net:hook("jhud.assault.calling", function(data)
 		self.calltext:set_visible(data > 0 and self.config.showcalling)
 		self.calltext:set_text(callingText)
 	end)
+	jhud.net:hook("jhud.assault.uncool", function(data)
+		self.uncool = data
+		self:updateTagTextNext()
+	end)
+end
+function this:updateTagTextNext()
+	doUpdate = true
 end

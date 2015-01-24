@@ -52,6 +52,7 @@ jhud.defOptions = {
 				questioning = 0, --Someone is being detected
 			},
 			showpagers = true, --Show the #pagers in the indicator
+			showuncool = true,
 			uppercase = true, --Make the indicator uppercase
 			showcalling = true,
 			showduring = {
