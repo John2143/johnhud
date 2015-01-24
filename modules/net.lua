@@ -27,8 +27,8 @@ function this:hook(name, func)
 end
 
 setmetatable(this, {
-	__call = function(_, name, data, no)
-		_:send(name, data, no)
+	__call = function(_, ...)
+		_:send(...)
 	end
 })
 
