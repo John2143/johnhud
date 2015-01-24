@@ -22,6 +22,10 @@ jhud.dlog = function(...)
 	jhud.log("DEBUG: ",...)
 end
 
+function jhud.localPlayer()
+	return managers and managers.player and managers.player:player_unit()
+end
+
 dofile 'johnhud/cfg.lua'
 dofile 'johnhud/jhopts.lua'
 setmetatable(jhud.options,{
@@ -49,7 +53,6 @@ jhud.lang = L:new("_")
 if jhud.chat and jhud.options.m._.showload then
 	jhud.chat(jhud.lang("start"))
 end
-
 jhud.hook("GameStateMachine", "update", function(GSMOBJ, t, dt)
 	jhud.whisper = managers.groupai and managers.groupai:state().whisper_mode and managers.groupai:state():whisper_mode()
 	for i,v in pairs(jhud) do
