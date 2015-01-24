@@ -28,8 +28,6 @@ function this:__update(t, dt)
 	self.shd = self.shd or managers.groupai:state()._suspicion_hud_data
 	if not self.shd then return end
 
-	jhud.debug = true-----------------------------------------------------------------------------------------------------------------
-
 	if not self.panel then 
 		local h = self.config.num*textheight
 		jhud.dlog("No panels")
