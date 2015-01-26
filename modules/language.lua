@@ -1,13 +1,13 @@
 require("johnhud/language/"..jhud.options.language..".lua")
 this._ = LOADLANGUAGE()
 this.isEN = jhud.options.language == "EN"
-if not this.isEN then 
-	require("johnhud/language/EN.lua") 
+if not this.isEN then
+	require("johnhud/language/EN.lua")
 	this._ENG = LOADLANGUAGE()
 end
 LOADLANGUAGE = nil
 
-io.write(jhud.options.language.." loaded.") 
+jhud.log(jhud.options.language.." loaded.")
 
 setmetatable(this,{
 	__call = function(_, ...)
@@ -31,9 +31,9 @@ function this:_key(key, default)
 			return b
 		end
 	end
-	if self.isEN or default then 
+	if self.isEN or default then
 		--jhud.dlog("No translation for "..table.concat(key,"->"))
-		return self._._.trans_error 
+		return self._._.trans_error
 	else
 		return self:_key(key, true)
 	end
