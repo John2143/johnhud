@@ -2,7 +2,7 @@ function this:getPagersUsed()
 	return managers.groupai and (managers.groupai:state():get_nr_successful_alarm_pager_bluffs()) or -1
 end
 
-local cautda = {[0] = "stealth", "caution", "danger"}
+local cautda = {[0] = "stealth", "caution", "danger", "compromised"}
 
 function this:getHeistStatus() 
 	if not jhud.net:isServer() then return end
@@ -17,7 +17,12 @@ function this:getHeistStatus()
 				local function max(x)
 					state = math.max(state, x)
 				end
-				if self.pagersActive > 0 then max(self.config.danger.pager) end
+				if self.pagersActive > 0 then
+					max(self.config.danger.pager)
+					if self.pagersActive > 4 then
+						max(self.config.danger.nopagers)
+					end
+				end
 				if self.uncool > 0 then max(self.config.danger.uncool) end
 				if self.caution > 0 then max(self.config.danger.questioning) end
 				return cautda[state]
@@ -86,6 +91,7 @@ function this:updateTag(t, dt)
 			jhud.net:send("jhud.assault.calling", self.calling)
 		end
 		if doUpdate then self:updateTagText() end
+		doUpdate = false
 	else
 		lastStatus = nil
 		self.panel = nil
@@ -98,7 +104,7 @@ function this:updateTag(t, dt)
 end
 function this:updateTagText()
 	if not self.textpanel then return end
-	if not (jhud.whisper and 
+	if not (jhud.whisper and
 				(self.config.showduring.stealth) or
 				(self.config.showduring.assault)
 			)
@@ -106,15 +112,24 @@ function this:updateTagText()
 		self.textpanel:set_visible(false)
 		return
 	end
-	local text = L("assault", self.heistStatus)
+	local text = self.config.showghost and jhud.whisper and
+			(jhud.chat and
+				jhud.chat.icons.Ghost or
+				"S "
+			) or
+			("")
+	text = text..L("assault", self.heistStatus)
 	if jhud.whisper then
-		if self.config.showpagers and self.pagersNR > 0 then 
-			text = text.." "..self.pagersNR..(jhud.chat and jhud.chat.icons.Skull or "p") 
+		if self.config.showpagers and self.pagersNR > 0 then
+			jhud.dlog(self.pagersNR, "pagers left.")
+			text = text.." "..(self.config.showpagersleft and
+					4 - self.pagersNR or
+					self.pagersNR
+				)..(jhud.chat and jhud.chat.icons.Skull or "p")
 		end
 		if self.config.showuncool and self.uncool > 0 then
 			text = text.." "..self.uncool.."!"
 		end
-		local detection = 0
 	end
 	if self.config.uppercase then
 		text = L:affix(text:upper())
@@ -162,6 +177,7 @@ function this:__init()
 	--Number of pagers used
 	--This number includes the number of pagers that will need to be used
 	--ie: pagercop dies during ecm, this number get added to anyway
+	self.uncool = 0
 	self.pagersNR = 0
 	if jhud.net:isServer() then
 		self.pagersActive = 0 --Number of pagers that are being answered or need to be answered
@@ -181,6 +197,9 @@ function this:__init()
 					jhud.dlog("pagercop died and will pager")
 					_self.pagersActive = _self.pagersActive + 1
 					jhud.net:send("jhud.assault.pagersNR", _self.pagersNR + 1)
+					if jhud.chat then
+						jhud.chat:chatAll(_self.pagersNR.." pagers used")
+					end
 				end
 			end)
 		end

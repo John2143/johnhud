@@ -11,6 +11,10 @@ setmetatable(jhud.chat, {
 		end
 	end
 })
+function this.chatAll(text, toself)
+	managers.network:session():send_to_peers_ip_verified( 'send_chat_message', 8, text)
+	if not toself then self("JohnHUD", text) end
+end
 
 local Icon = {
 	A=57344, B=57345,	X=57346, Y=57347, Back=57348, Start=57349,

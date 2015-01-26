@@ -32,7 +32,7 @@ function this:_key(key, default)
 		end
 	end
 	if self.isEN or default then 
-		jhud.log("No translation for "..table.concat(key,"->"))
+		--jhud.dlog("No translation for "..table.concat(key,"->"))
 		return self._._.trans_error 
 	else
 		return self:_key(key, true)

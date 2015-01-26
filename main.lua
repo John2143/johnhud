@@ -1,4 +1,5 @@
 jhud = jhud or {}
+jhud.debug = true
 jhud.log = function(...)
 	for i,v in pairs{...} do
 		io.write(tostring(v).."\t")
