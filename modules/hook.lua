@@ -9,15 +9,20 @@ setmetatable(this,{
 		end
 		local oldfunc = _G[iclass][ifunc]
 		_G[iclass][ifunc] = function(...)
-			local res = callback(...)
-			if not res then
-				oldfunc(...)
-			elseif type(res) == "table" then
-				local tab = {...}
-				for i,v in ipairs(res) do
-					tab[i] = v
+			local success, res = pcall(callback, ...)
+			if success then
+				if not res then
+					oldfunc(...)
+				elseif type(res) == "table" then
+					local tab = {...}
+					for i,v in ipairs(res) do
+						tab[i] = v
+					end
+					oldfunc(unpack(tab[i]))
 				end
-				oldfunc(unpack(tab[i]))
+			else
+				jhud.log("ERROR: ", res)
+				oldfunc(...)
 			end
 		end
 		return true

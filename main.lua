@@ -35,7 +35,7 @@ setmetatable(jhud.options,{
 dofile 'johnhud/jhbinds.lua'
 
 for i,v in pairs(jhud.options.modules) do
-	if v and not jhud.options.disabledModules[v] then 
+	if v and not jhud.options.disabledModules[v] then
 		-- if jhud[v] then io.write(string.format("=============MODULE %s RELOADED==============\n", v)) end
 		jhud[v] = {config = jhud.options.m[v]}
 		this = jhud[v]
@@ -57,9 +57,16 @@ end
 jhud.hook("GameStateMachine", "update", function(GSMOBJ, t, dt)
 	jhud.whisper = managers.groupai and managers.groupai:state().whisper_mode and managers.groupai:state():whisper_mode()
 	for i,v in pairs(jhud) do
-		if type(v) == "table" and v.__update then 
-			local aaas, err = pcall(v.__update, v, t, dt) 
-			if err then jhud.log(err) end
+		if type(v) == "table" then
+			if v.__update then
+				local suc, err = pcall(v.__update, v, t, dt)
+				if not suc then jhud.log(err) end
+			end
+			if v.__igupdate and managers.groupai then
+				local suc, err = pcall(v.__igupdate, v, t, dt)
+				if not suc then jhud.log(err) end
+			end
 		end
 	end
 end)
+

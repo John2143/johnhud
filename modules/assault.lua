@@ -166,7 +166,7 @@ function this:updateDangerData(t, dt)
 end
 
 
-function this:__update(t, dt)
+function this:__igupdate(t, dt)
 	if not managers then return end
 	self:updateDangerData(t, dt)
 	self:updateTag(t, dt)
