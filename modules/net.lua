@@ -13,7 +13,7 @@ function this:__init()
 				dat[ind] = w
 				ind = ind + 1
 			end
-			jhud.dlog("Network sync method called: ", gtype)
+			jhud.dlog("Network sync method called: ",dat[0], unpack(dat))
 			if _self.hooks[dat[0]] then
 				_self.hooks[dat[0]](unpack(dat))
 			end
@@ -21,7 +21,6 @@ function this:__init()
 		end
 	end)
 end
-
 function this:send(name, data, nofeedback)
 	if managers.network and managers.network:session() and name then
 		local mgs = managers.network:session()

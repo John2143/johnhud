@@ -73,22 +73,24 @@ function this:updateTag(t, dt)
 				font_size = tweak_data.hud_present.text_size  + self.config.calling.text_size,
 			}
 		end
-		if lastUncool ~= self.uncool then
-			lastUncool = self.uncool
-			jhud.dlog("number of uncool people changed to "..self.uncool)
-			jhud.net:send("jhud.assault.uncool", self.uncool)
-		end
-		if (self.heistStatus ~= lastStatus) then
-			lastStatus = self.heistStatus
-			jhud.net:send("jhud.assault.heistStatus", self.heistStatus)
-		end
-		if lastCasing ~= isCasing then
-			lastCasing = isCasing
-			self.textpanel:set_visible(not isCasing)
-		end
-		if lastCalling ~= self.calling then
-			lastCalling = self.calling
-			jhud.net:send("jhud.assault.calling", self.calling)
+		if jhud.net:isServer() then
+			if lastUncool ~= self.uncool then
+				lastUncool = self.uncool
+				jhud.dlog("number of uncool people changed to "..self.uncool)
+				jhud.net:send("jhud.assault.uncool", self.uncool)
+			end
+			if (self.heistStatus ~= lastStatus) then
+				lastStatus = self.heistStatus
+				jhud.net:send("jhud.assault.heistStatus", self.heistStatus)
+			end
+			if lastCasing ~= isCasing then
+				lastCasing = isCasing
+				self.textpanel:set_visible(not isCasing)
+			end
+			if lastCalling ~= self.calling then
+				lastCalling = self.calling
+				jhud.net:send("jhud.assault.calling", self.calling)
+			end
 		end
 		if doUpdate then self:updateTagText() end
 		doUpdate = false
@@ -179,6 +181,7 @@ function this:__init()
 	--ie: pagercop dies during ecm, this number get added to anyway
 	self.uncool = 0
 	self.pagersNR = 0
+	self.heistStatus = "none"
 	if jhud.net:isServer() then
 		self.pagersActive = 0 --Number of pagers that are being answered or need to be answered
 		self.deadCopsWithPagers = {}
@@ -209,15 +212,15 @@ function this:__init()
 		self:updateTagTextNext()
 	end)
 	jhud.net:hook("jhud.assault.pagersNR", function(data)
-		self.pagersNR = data
+		self.pagersNR = tonumber(data)
 		self:updateTagTextNext()
 	end)
 	jhud.net:hook("jhud.assault.calling", function(data)
-		self.calltext:set_visible(data > 0 and self.config.showcalling)
+		self.calltext:set_visible(tonumber(data) > 0 and self.config.showcalling)
 		self.calltext:set_text(callingText)
 	end)
 	jhud.net:hook("jhud.assault.uncool", function(data)
-		self.uncool = data
+		self.uncool = tonumber(data)
 		self:updateTagTextNext()
 	end)
 end
