@@ -27,21 +27,21 @@ function jhud.localPlayer()
 	return managers and managers.player and managers.player:player_unit()
 end
 
-dofile 'johnhud/cfg.lua'
-dofile 'johnhud/jhopts.lua'
+dofile 'johnhud/cfg.lua'--REP
+dofile 'johnhud/jhopts.lua'--REP
 setmetatable(jhud.options,{
 	__index = jhud.defOptions
 })
-dofile 'johnhud/jhbinds.lua'
-
+dofile 'johnhud/jhbinds.lua'  --REP
+--S
 for i,v in pairs(jhud.options.modules) do
 	if v and not jhud.options.disabledModules[v] then
-		-- if jhud[v] then io.write(string.format("=============MODULE %s RELOADED==============\n", v)) end
 		jhud[v] = {config = jhud.options.m[v]}
 		this = jhud[v]
 		dofile(string.format('johnhud/modules/%s.lua', v))
 	end
 end
+--E
 this = nil
 for i,v in pairs(jhud.options.modules) do
 	if jhud[v].__init then
@@ -69,4 +69,3 @@ jhud.hook("GameStateMachine", "update", function(GSMOBJ, t, dt)
 		end
 	end
 end)
-
