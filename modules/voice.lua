@@ -5,6 +5,14 @@ function this:voiceline(line)
 	end
 	return false
 end
+function this:bainline(line, net)
+	if line then
+		managers.dialog:queue_dialog(line, {})
+	end
+	if net and jhud.net and jhud.net:isServer() then
+		managers.network:session():send_to_peers_synched("bain_comment", line)
+	end
+end
 
 function this:__init()
 	local _self = self
@@ -12,6 +20,13 @@ function this:__init()
 		if v[1] then
 			jhud.bind(v[1], function()
 				_self:voiceline(v[2])
+			end)
+		end
+	end
+	for i,v in pairs(jhud.binds.bainlines) do
+		if v[1] then
+			jhud.bind(v[1], function()
+				_self:bainline(v[2], v[3])
 			end)
 		end
 	end

@@ -4,7 +4,7 @@ end
 
 local cautda = {[0] = "stealth", "caution", "danger", "compromised"}
 
-function this:getHeistStatus() 
+function this:getHeistStatus()
 	if not jhud.net:isServer() then return end
 	if managers.groupai and managers.groupai:state() then
 		local assault = managers.groupai:state()._task_data.assault
@@ -48,7 +48,7 @@ function this:updateTag(t, dt)
 	self.heistStatus = self:getHeistStatus() or self.heistStatus
 	local isCasing = managers.hud and managers.hud._hud_assault_corner._casing
 	if self.heistStatus ~= "none" then
-		if not self.panel then 
+		if not self.panel then
 			self.panel = jhud.createPanel()
 			self.panel:set_x((jhud.resolution.x - 400)/2 + self.config.stealthind.x)
 			self.panel:set_y(80  + self.config.stealthind.y)
@@ -159,9 +159,9 @@ function this:updateDangerData(t, dt)
 			end
 			if v.status == "calling" then
 				local f = false
-				for i,v in pairs(managers.groupai:state()._ecm_jammers) do f = true end
+				for i,v in pairs(managers.groupai:state()._ecm_jammers) do f = true break end
 				if f then self.calling = self.calling + 1 end
-				--for some reason #managers.groupai:state()._ecm_jammers == 0
+				--for some reason #managers.groupai:state()._ecm_jammers is always 0
 			end
 		end
 	end
@@ -186,26 +186,24 @@ function this:__init()
 		self.pagersActive = 0 --Number of pagers that are being answered or need to be answered
 		self.deadCopsWithPagers = {}
 		local _self = self
-		if _G.CopBrain then
-			jhud.hook("CopBrain", "begin_alarm_pager", function(self, reset)
-				local has = false
-				for i,v in pairs(_self.deadCopsWithPagers) do
-					if v == self then
-						has = true
-						break
-					end
+		jhud.hook("CopBrain", "begin_alarm_pager", function(self, reset)
+			local has = false
+			for i,v in pairs(_self.deadCopsWithPagers) do
+				if v == self then
+					has = true
+					break
 				end
-				if not has then
-					table.insert(_self.deadCopsWithPagers, self)
-					jhud.dlog("pagercop died and will pager")
-					_self.pagersActive = _self.pagersActive + 1
-					jhud.net:send("jhud.assault.pagersNR", _self.pagersNR + 1)
-					if jhud.chat then
-						jhud.chat:chatAll(_self.pagersNR.." pagers used")
-					end
+			end
+			if not has then
+				table.insert(_self.deadCopsWithPagers, self)
+				jhud.dlog("pagercop died and will pager")
+				_self.pagersActive = _self.pagersActive + 1
+				jhud.net:send("jhud.assault.pagersNR", _self.pagersNR + 1)
+				if jhud.chat then
+					jhud.chat:chatAll(_self.pagersNR.." pagers used")
 				end
-			end)
-		end
+			end
+		end)
 	end
 	jhud.net:hook("jhud.assault.heistStatus", function(data)
 		self.heistStatus = data --This does not need to be reset on host

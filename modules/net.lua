@@ -5,15 +5,18 @@ function this:__init()
 	if not _G.UnitNetworkHandler then return end
 	self.hooks = {}
 	local _self = self
-	jhud.hook("UnitNetworkHandler","sync_grenades", function(self, gtype)
-		if gtype and tostring(gtype) and gtype ~= "frag" then
+	--sync_show_action_message->unit, id
+	jhud.hook("UnitNetworkHandler","sync_show_action_message", function(self, gtype)
+		_(self.gtype)
+		if not alive(gtype) and gtype:sub(1,2) == "$!" then
+			gtype = gtype:sub(3)
 			local dat = {}
 			local ind = 0
 			for w in gtype:gmatch("[^~]-") do
 				dat[ind] = w
 				ind = ind + 1
 			end
-			jhud.dlog("Network sync method called: ",dat[0], unpack(dat))
+			jhud.dlog("Network sync method called: ", dat[0], unpack(dat))
 			if _self.hooks[dat[0]] then
 				_self.hooks[dat[0]](unpack(dat))
 			end
@@ -28,12 +31,12 @@ function this:send(name, data, nofeedback)
 			data = {data}
 		end
 		data[0] = name
-		local datacompr = table.concat(data, "~")
-		local send = data[0] -- name
-		if datacompr ~= "" then
-			send = send .. "~" .. datacompr
-		end
-		mgs:send_to_peers_synched("sync_grenades", send)
+		local send = {
+			data = data,
+			alive = function() return false end,
+			from_jhud = true
+		}
+		mgs:send_to_peers_synched("sync_show_action_manager", send)
 	else
 		jhud.dlog("could not send")
 	end

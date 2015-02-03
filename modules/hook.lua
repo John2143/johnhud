@@ -31,7 +31,7 @@ function this:restore(iclass, ifunc)
 end
 function this:addFunctionHook(iclass, ifunc, callback)
 	jhud.dlog("Hooking "..iclass..":"..ifunc)
-	if not(_G[iclass] and _G[iclass][ifunc]) then
+	if not(rawget(_G, iclass) and _G[iclass][ifunc]) then
 		jhud.dlog(">> Global variable not avaiable")
 		return false
 	end
