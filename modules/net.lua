@@ -1,7 +1,7 @@
 --Note on unpack
 -- Unpack will always ignore element 0, so I use that to store the name
 -- and return the correct value every time
-this.UNHhook = "sync_show_action_message"
+this.UNHhook = "sync_warn_about_civilian_free"
 function this:__init()
 	if not _G.UnitNetworkHandler then return end
 	self.hooks = {}
@@ -51,6 +51,7 @@ function this:_doSend(name, data, to, localcall)
 		end
 	end
 	if managers.network and managers.network:session() and name then
+		local ses = managers.network:session()
 		local send =
 			self._startchar..
 			to..self._joinchar..
@@ -58,7 +59,7 @@ function this:_doSend(name, data, to, localcall)
 			table.concat(data,self._joinchar)
 
 		if to == self.TO_PEERS then
-			managers.network:session():send_to_peers_synched(self.UNHhook, send)
+			ses:send_to_peers_synched(self.UNHhook, send)
 		elseif to == self.TO_HOST then
 			--TODO
 		end
