@@ -1,7 +1,4 @@
-local chains = "b"
-local dallas = "a"
-local wolf = "c"
-local hoxton = "d"
+local chains, dallas, wolf, hoxton, clover, houston, wick, dragan =	"b", "a", "c", "d", "n", "l", "m", ""
 jhud.binds = {
 	voice = {
 		{"", "f30x_any"}, 		--BULLDOZER
@@ -27,10 +24,13 @@ jhud.binds = {
 		{"", "l01x_sin"}, 		--handsup
 		{"", "l02x_sin"}, 		--get on knees
 		{"", "l03x_sin"}, 		--cuff yourself
-		{"m", "g40x_any"}, 		--cuff yourself
+		{"", "r01x_sin"}, 		--Affirmative
+		{"", "r02a_sin"}, 		--I cant understand anything that chains says here
+		{"m", "str_14"}, 		--
+		{"n", "und_04"}, 		--
 	},
 	bainlines = {
-		{"", "ban_q01"..chains, true},		--[character] pickle
+		{"", "ban_q01"..wolf, true},		--[character] is in a pickle
 		{"", "ban_r01", true},				--Extraction team (2)
 		{"", "ban_r02", true},				--Extraction team (1)
 		{"", "ban_r03", true},				--Freed civ (1)
@@ -51,10 +51,16 @@ jhud.binds = {
 		{"", "gen_ban_b10", true},			--praise 1
 		{"", "gen_ban_b11", true},			--praise 2
 		{"", "gen_ban_b12", true},			--praise 3
-		{"h", "ban_h01x", true},			--Need hostages
-		{"n", "Play_ban_h22x", true},		--Need hostages (detailed)
-		{"u", "Play_ban_i20"..wolf, true},	--Last one alive [character]
-		{"j", "Play_ban_h11"..wolf, true},	--[character] in custody
-		{"m", "Play_ban_h50x", true},		--Hostage trade cancelled
+		{"", "ban_h01x", true},			--Need hostages
+		{"", "Play_ban_h22x", true},		--Need hostages (detailed)
+		{"", "Play_ban_i20"..wolf, true},	--Last one alive [character]
+		{"", "Play_ban_h11"..wolf, true},	--[character] in custody
+		{"", "Play_ban_h50x", true},		--Hostage trade cancelled
+		{"", "Play_ban_h38x", true},		--Trade is taking a while
+		{"", "Play_ban_h32x", true},		--willing to trade right away
+		{"", "Play_ban_h33x", true},		--willing to trade soon
+		{"", "Play_ban_h34x", true},		--hesatant to trade
+		{"", "Play_ban_h36x", true},		--Willing to trade now
+		{"", "Play_ban_h37"..wolf, true},		--'I've informed [character] of their ability to trade for you'
 	}
 }

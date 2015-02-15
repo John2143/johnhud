@@ -24,6 +24,7 @@ function this:getHeistStatus()
 					end
 				end
 				if self.uncool > 0 then max(self.config.danger.uncool) end
+				if self.uncoolstanding > 0 then max(self.config.danger.uncoolstanding) end
 				if self.caution > 0 then max(self.config.danger.questioning) end
 				return cautda[state]
 			elseif jhud.assault.assaultWaveOccurred then
@@ -43,6 +44,7 @@ local lastCasing = false
 local lastCalling
 local callingText = L("assault","calling")
 local lastUncool
+local lastUncoolStanding
 local doUpdate = true
 function this:updateTag(t, dt)
 	self.heistStatus = self:getHeistStatus() or self.heistStatus
@@ -74,6 +76,10 @@ function this:updateTag(t, dt)
 			}
 		end
 		if jhud.net:isServer() then
+			if lastUncoolStanding ~= self.uncoolstanding then
+				lastUncoolStanding = self.uncoolstanding
+				jhud.net:send("jhud.assault.uncoolstanding", self.uncoolstanding)
+			end
 			if lastUncool ~= self.uncool then
 				lastUncool = self.uncool
 				jhud.dlog("number of uncool people changed to "..self.uncool)
@@ -101,6 +107,7 @@ function this:updateTag(t, dt)
 		self.callpanel = nil
 		self.calltext = nil
 		lastUncool = nil
+		lastUncoolStanding = nil
 		lastCalling = nil
 	end
 end
@@ -129,8 +136,16 @@ function this:updateTagText()
 					self.pagersNR
 				)..(jhud.chat and jhud.chat.icons.Skull or "p")
 		end
-		if self.config.showuncool and self.uncool > 0 then
-			text = text.." "..self.uncool.."!"
+
+		local uc = self.config.uncoolsitting and self.config.showuncoolstanding and
+			self.uncool - self.uncoolstanding or
+			self.uncool
+		jhud.dlog(self.uncool, uc, self.uncoolstanding)
+		if self.config.showuncool and uc > 0 then
+			text = text.." "..uc.."!"
+		end
+		if self.config.showuncoolstanding and self.uncoolstanding > 0 then
+			text = text.." "..self.uncoolstanding.."^"
 		end
 	end
 	if self.config.uppercase then
@@ -148,12 +163,18 @@ function this:updateDangerData(t, dt)
 		self.pagersActive = self.pagersActive - 1
 	end
 	self.uncool = 0
+	self.uncoolstanding = 0
 	self.caution = 0
 	self.calling = 0
 	if managers.groupai and managers.groupai:state() and managers.groupai:state()._suspicion_hud_data then
 		for i,v in pairs(managers.groupai:state()._suspicion_hud_data) do
 			if v.alerted then
 				self.uncool = self.uncool + 1
+				if v.icon_pos and v.u_observer then
+					if v.icon_pos.z > (90 + v.u_observer:position().z) then
+						self.uncoolstanding = self.uncoolstanding + 1
+					end
+				end
 			else
 				self.caution = self.caution + 1
 			end
@@ -199,7 +220,7 @@ function this:__init()
 				jhud.dlog("pagercop died and will pager")
 				_self.pagersActive = _self.pagersActive + 1
 				jhud.net:send("jhud.assault.pagersNR", _self.pagersNR + 1)
-				if jhud.chat then
+				if jhud.chat and _self.config.chatPGUsed then
 					jhud.chat:chatAll(_self.pagersNR.." pagers used")
 				end
 			end
@@ -216,6 +237,10 @@ function this:__init()
 	jhud.net:hook("jhud.assault.calling", function(data)
 		self.calltext:set_visible(tonumber(data) > 0 and self.config.showcalling)
 		self.calltext:set_text(callingText)
+	end)
+	jhud.net:hook("jhud.assault.standing", function(data)
+		self.uncoolstanding = tonumber(data)
+		self:updateTagTextNext()
 	end)
 	jhud.net:hook("jhud.assault.uncool", function(data)
 		self.uncool = tonumber(data)

@@ -1,6 +1,6 @@
 setmetatable(jhud.chat, {
 	__call = function(_,name,message,color)
-		if not message then 
+		if not message then
 			message = name
 			name = jhud.chat.icons.Skull
 		end
@@ -11,7 +11,7 @@ setmetatable(jhud.chat, {
 		end
 	end
 })
-function this.chatAll(text, toself)
+function this:chatAll(text, toself)
 	managers.network:session():send_to_peers_ip_verified( 'send_chat_message', 8, text)
 	if not toself then self("JohnHUD", text) end
 end
@@ -33,10 +33,11 @@ function this:sterileEmotes(text)
 	end
 	return text
 end
-
-if HUDChat then 
-	local oldhc = HUDChat.receive_message
-	function HUDChat:receive_message(name, message, color, icon)
-		oldhc(self, jhud.chat:sterileEmotes(name), jhud.chat:sterileEmotes(message), color, icon)
-	end
+function this:__init()
+	jhud.hook("HUDChat", "receive_message", function(self, name, message)
+		return {
+			[2] = jhud.chat:sterileEmotes(name),
+			[3] = jhud.chat:sterileEmotes(message)
+		}
+	end)
 end

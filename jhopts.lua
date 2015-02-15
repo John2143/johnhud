@@ -50,7 +50,8 @@ jhud.defOptions = {
 				-- 2: Danger
 				-- 3: Compromised
 				pager = 1,		--A pager needs to be asnwered
-				uncool = 2,		--A civ or cop is alerted
+				uncool = 1,		--A civ or cop is alerted
+				uncoolstanding = 2,	--an uncool civ or cop is standing
 				questioning = 0,--Someone is being detected
 				nopagers = 3,	--More than 4 pagers required
 			},
@@ -58,12 +59,17 @@ jhud.defOptions = {
 			showpagersleft = true,	--Show the number of pagers that you can use
 									-- When false this will display the amount of pagers you have used
 			showuncool = true,	--Show the number of uncool civilians
+			showuncoolstanding = true,	--Show the number of uncool civilians who are not subdued
+			uncoolsitting = true,	--if this and showuncoolstanding are enabled, the number of uncool civs
+									-- shown on the indicator will only be counted once as either sitting or
+									-- standing
 			uppercase = true,	--Make the indicator uppercase
 			showcalling = true,	--Show a indicator when someone is calling the police
 			showduring = {
 				stealth = true,
 				assault = true
 			},
+			chatPGUsed = true,	--Show the number of pagers remaining as a chat message
 			showghost = true,	--Show a ghost symbol in the tag if stealth is active
 								--If the chat module is not active, it will display a S
 		},

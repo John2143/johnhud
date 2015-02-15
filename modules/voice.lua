@@ -14,6 +14,12 @@ function this:bainline(line, net)
 	end
 end
 
+this.internalnames = {
+	hoxton = 5,
+	clover = 7,
+	houston = 2,
+	wick = 6,
+}
 function this:__init()
 	local _self = self
 	for i,v in pairs(jhud.binds.voice) do

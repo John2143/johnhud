@@ -40,7 +40,7 @@ function this:addFunctionHook(iclass, ifunc, callback)
 	if not self.fhooks[iclass][ifunc] then
 		self.fhooks[iclass][ifunc] = {}
 		self.func[iclass][ifunc] = _G[iclass][ifunc]
-		_G[iclass][ifunc] = function(...)
+		_G[iclass][ifunc] = function(...) --TODO make this into a function that doesnt need to be rewritten for every function
 			local cancelFunc = false;
 			local forward = {...}
 			for i, callback in pairs(self.fhooks[iclass][ifunc]) do
@@ -48,7 +48,7 @@ function this:addFunctionHook(iclass, ifunc, callback)
 				if success then
 					if res then
 						if type(res) == "table" then
-							for i,v in ipairs(res) do
+							for i,v in pairs(res) do
 								forward[i] = v
 							end
 						elseif res == true then
