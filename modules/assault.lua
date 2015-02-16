@@ -236,6 +236,7 @@ function this:__init()
 		self:updateTagTextNext()
 	end)
 	jhud.net:hook("jhud.assault.calling", function(data)
+		if not self.calltext then return end
 		self.calltext:set_visible(tonumber(data) > 0 and self.config.showcalling)
 		self.calltext:set_text(callingText)
 	end)
