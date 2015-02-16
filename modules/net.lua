@@ -4,14 +4,15 @@
 function this:__init()
 	if not _G.UnitNetworkHandler then return end
 	self.hooks = {}
-	jhud.hook("ChatManager", "_receive_message", function(id, name, message, color, icon)
+	jhud.hook("ChatManager", "_receive_message", function(cm, id, name, message, color, icon)
 		if message then
 			local dat = {}
 			local ind = -2
-			for w in calldata:gmatch("[^" + self._joinchar + "]*") do
+			for w in message:gmatch("[^" .. self._joinchar .. "]*") do
 				dat[ind] = w
 				ind = ind + 1
 			end
+			if dat[-2] ~= "jhud" then return end
 			--Example string: jhud|1|fname|fdata1|fdata2
 			--Parses to:
 			--dat
@@ -48,7 +49,7 @@ function this:_doSend(name, data, to, localcall)
 		local ses = managers.network:session()
 		local send =
 			"jhud"..self._joinchar..
-			to..self._joinchar..
+			--to..self._joinchar..
 			name..self._joinchar..
 			table.concat(data,self._joinchar)
 

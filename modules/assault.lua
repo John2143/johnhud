@@ -202,6 +202,7 @@ function this:__init()
 	--ie: pagercop dies during ecm, this number get added to anyway
 	self.uncool = 0
 	self.pagersNR = 0
+	self.uncoolstanding = 0
 	self.heistStatus = "none"
 	if jhud.net:isServer() then
 		self.pagersActive = 0 --Number of pagers that are being answered or need to be answered
