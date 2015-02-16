@@ -1,45 +1,39 @@
 --Note on unpack
 -- Unpack will always ignore element 0, so I use that to store the name
 -- and return the correct value every time
-this.UNHhook = "sync_warn_about_civilian_free"
 function this:__init()
 	if not _G.UnitNetworkHandler then return end
 	self.hooks = {}
-	local _self = self
-	jhud.hook("UnitNetworkHandler", self.UNHhook, function(self, gtype)
-		_(self, gtype)
-		if type(gtype) == "string" then
-			local calldata = gtype:match("^".._self._startchar.."(.+)")
-			if calldata then
-				local dat = {}
-				local ind = -1
-				for w in calldata:gmatch("[^~]*") do
-					dat[ind] = w
-					ind = ind + 1
-				end
-				--Example string: $!1~fname~fdata1~fdata2
-				--Parses to:
-				--dat
-				--	-1	1		--network method
-				--	0	fname	--funcname
-				--	1	fdata1	--data...
-				--	2	fdata2
-				--unpack(dat)
-				--	(fdata1, fdata2)
-				jhud.dlog("Network sync method called: ", dat[0], unpack(dat))
-				if _self.hooks[dat[0]] then
-					_self.hooks[dat[0]](unpack(dat))
-				end
-				return true
+	jhud.hook("ChatManager", "_receive_message", function(id, name, message, color, icon)
+		if message then
+			local dat = {}
+			local ind = -2
+			for w in calldata:gmatch("[^" + self._joinchar + "]*") do
+				dat[ind] = w
+				ind = ind + 1
 			end
+			--Example string: jhud|1|fname|fdata1|fdata2
+			--Parses to:
+			--dat
+			--	-2	jhud	--always
+			--	-1	1		--network method
+			--	0	fname	--funcname
+			--	1	fdata1	--data...
+			--	2	fdata2
+			--unpack(dat)
+			--	(fdata1, fdata2)
+			jhud.dlog("Network sync method called: ", dat[0], unpack(dat))
+			if self.hooks[dat[0]] then
+				self.hooks[dat[0]](unpack(dat))
+			end
+			return true
 		end
 	end)
 end
 
 this.TO_HOST = 1
 this.TO_PEERS = 2
-this._joinchar = "~"
-this._startchar = "$!"
+this._joinchar = "|"
 
 function this:_doSend(name, data, to, localcall)
 	if type(data) ~= "table" then
@@ -53,13 +47,13 @@ function this:_doSend(name, data, to, localcall)
 	if managers.network and managers.network:session() and name then
 		local ses = managers.network:session()
 		local send =
-			self._startchar..
+			"jhud"..self._joinchar..
 			to..self._joinchar..
 			name..self._joinchar..
 			table.concat(data,self._joinchar)
 
 		if to == self.TO_PEERS then
-			ses:send_to_peers_synched(self.UNHhook, send)
+			ses:send_to_peers_ip_verified("send_chat_message", 4, send)
 		elseif to == self.TO_HOST then
 			--TODO
 		end
