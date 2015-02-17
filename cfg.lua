@@ -8,10 +8,10 @@
 	o.m._.showload = false
 
 	EXAMPLE VOICE BIND:
-	b.voice[3][1] = "k"
-			   ^this must always be 1
-			^this is the command number from jhbinds(the number in brackets)
-	  ^this is what you want to bind
+    b.voice[3][1] = "k"
+               ^this must always be 1
+            ^this is the command number from jhbinds(the number in brackets)
+         ^this is what you want to bind
 
 ]]--
 local o = jhud.options
