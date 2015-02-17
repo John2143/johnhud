@@ -6,6 +6,7 @@ function this:voiceline(line)
 	return false
 end
 function this:bainline(line, net)
+	if not managers.dialog then return end
 	if line then
 		managers.dialog:queue_dialog(line, {})
 	end

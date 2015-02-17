@@ -14,7 +14,6 @@ jhud.createPanel = function()
 	return Overlay:gui():create_scaled_screen_workspace(jhud.resolution.x, jhud.resolution.y, 0, 0, jhud.resolution.x, jhud.resolution.y):panel({ name = "workspace_panel"})
 end
 jhud.keyboard = Input:keyboard()
-
 jhud.log2 = function(...)
 	jhud.log(string.format(...))
 end
@@ -27,14 +26,27 @@ function jhud.localPlayer()
 	return managers and managers.player and managers.player:player_unit()
 end
 
-dofile 'johnhud/cfg.lua'--REP
+function jhud.addModule(tab)
+	for i,v in ipairs(tab) do
+		table.insert(jhud.options.modules, v)
+	end
+end
+function jhud.addCheatModule(tab)
+	for i,v in ipairs(tab) do
+		table.insert(jhud.options.cheaterModules, v)
+	end
+end
+
 dofile 'johnhud/jhopts.lua'--REP
-setmetatable(jhud.options,{
-	__index = jhud.defOptions
-})
-dofile 'johnhud/jhbinds.lua'  --REP
+dofile 'johnhud/jhbinds.lua'--REP
+dofile 'johnhud/cfg.lua'--REP
+
+jhud.cheating = jhud.options.cheat
+if jhud.cheating then
+	jhud.addModule(jhud.options.cheaterModules)
+end
 --S
-for i,v in pairs(jhud.options.modules) do
+for i,v in ipairs(jhud.options.modules) do
 	if v and not jhud.options.disabledModules[v] then
 		jhud[v] = {config = jhud.options.m[v]}
 		this = jhud[v]
@@ -53,7 +65,13 @@ end
 jhud.lang = L:new("_")
 if jhud.chat and jhud.options.m._.showload then
 	jhud.chat(jhud.lang("start"))
+	if jhud.cheating then
+		jhud.chat(jhud.lang("cheater"))
+	end
 end
+jhud.hook("AchievementManager", "award_steam", function()
+	if jhud.cheating then return true end
+end)
 jhud.hook("GameStateMachine", "update", function(GSMOBJ, t, dt)
 	jhud.whisper = managers.groupai and managers.groupai:state().whisper_mode and managers.groupai:state():whisper_mode()
 	for i,v in pairs(jhud) do

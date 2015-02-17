@@ -16,5 +16,6 @@ LOADLANGUAGE = function() return {
 		start = "JohnHUD started",
 		trans_error = "Translation Error",
 		affix_error = "Affixation Error",
+		cheater = "Acheivements are disabled because you are cheating",
 	}
 } end

@@ -1,3 +1,6 @@
+os.execute("echo disabled until some other time")
+do return end
+
 jhud = jhud or {}
 Color = Color or function() end
 dofile 'cfg.lua'

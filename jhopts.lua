@@ -1,4 +1,4 @@
-jhud.defOptions = {
+jhud.options= {
 	modules = { --This is the list of modules that get loaded
 				-- words in parenthesis are required modules
 		"language",		--[REQUIRED]
@@ -11,6 +11,11 @@ jhud.defOptions = {
 						--    This will let people with the mod in your lobby still have the indicator
 		"chat",			-- disabling this will disable johnhud from printing to your chat
 		"voice",		-- (bind) Allows you to bind keys for voicelines
+		"infamy",		-- Internal infamy stuff
+	},
+	cheat = false,		-- Enable cheater modules
+	cheaterModules = {
+		"wallhack",		-- Bind a key to see enemies through walls
 	},
 	language = "EN",
 	m = {

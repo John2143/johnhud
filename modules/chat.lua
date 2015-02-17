@@ -11,8 +11,9 @@ setmetatable(jhud.chat, {
 		end
 	end
 })
+
 function this:chatAll(text, toself)
-	managers.network:session():send_to_peers_ip_verified( 'send_chat_message', 8, text)
+	managers.network:session():send_to_peers_ip_verified( 'send_chat_message', 1, text)
 	if not toself then self("JohnHUD", text) end
 end
 
