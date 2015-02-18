@@ -67,4 +67,3 @@ function this:new(...)
 end
 
 L = jhud.language
-

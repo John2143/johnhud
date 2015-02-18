@@ -17,5 +17,8 @@ LOADLANGUAGE = function() return {
 		trans_error = "Translation Error",
 		affix_error = "Affixation Error",
 		cheater = "Acheivements are disabled because you are cheating",
+	},
+	chat = {
+		unknown = "Unknown command '%s'"
 	}
 } end

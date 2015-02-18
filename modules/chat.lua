@@ -34,11 +34,30 @@ function this:sterileEmotes(text)
 	end
 	return text
 end
+
 function this:__init()
-	jhud.hook("HUDChat", "receive_message", function(self, name, message)
+	jhud.hook("HUDChat", "receive_message", function(hc, name, message)
 		return {
 			[2] = jhud.chat:sterileEmotes(name),
 			[3] = jhud.chat:sterileEmotes(message)
 		}
 	end)
+	self.lang = L:new("chat")
+	jhud.hook("ChatManager", "send_message", function(cm, channel, name, text)
+		_("THING CALLED", channel, name, text)
+		if text:sub(1,1) == "/" or text:sub(1,1) == "!" then
+			local cmd = string.gloop(text, "%w+", 0)
+			local ret = --This is really hacky but gets the job done
+				(self.commands[cmd[0]] or function()
+					self("CMD", string.format(self.lang("unknown"), cmd[0]), self.config.unknown)
+				end)(self, unpack(cmd))
+
+			return true
+		end
+	end)
+	self.commands = {}
+end
+
+function this:addCommand(name, func)
+	self.commands[name] = func
 end

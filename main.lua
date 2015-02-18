@@ -7,6 +7,36 @@ jhud.log = function(...)
 	io.write("\n")
 end
 jhud.log("JohnHUD started.")
+table.hasValue = function(table, val)
+	for i,v in pairs(table) do
+		if v == val then
+			return true
+		end
+	end
+	return false
+end
+string.split = function(text, reg, ind)
+	ind = ind or 1
+	reg = reg or ","
+	local dat = {}
+	for w in text:gmatch("[^"..reg.."]+") do
+		dat[ind] = w
+		ind = ind + 1
+	end
+	return dat
+end
+string.gloop = function(text, reg, ind)
+	local ret, ind = {}, ind or 0
+	for w in text:gmatch(reg or "%w+") do
+		ret[ind] = w
+		ind = ind + 1
+	end
+	return ret
+end
+jhud.appValue = function(num)
+	return Applicaton:digest_value(num, true)
+end
+
 
 jhud.createPanel = function()
 	if not RenderSettings then return end

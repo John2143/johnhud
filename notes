@@ -1,0 +1,19 @@
+managers.player._equipment
+	.selctions-> table containg a bunch of ->
+	{
+		amount = appvalue amount
+		use_function = use function (usually like use_doctor_bag or use_ecm_jammer)
+		equipment = name
+	}
+
+	.selected_index = the .selectinos index
+
+
+
+
+
+
+jhud.localPlayer():camera()._camera_object:set_fov(ASEFASEGASEFASEGESGG)
+managers.skilltree:_set_points()
+
+tweak_data.skilltree.trees[treeid].tiers = table->[tier][left = 1, center = 2, right = 3]
