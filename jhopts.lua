@@ -89,7 +89,9 @@ jhud.options= {
 								-- know who was detected
 		},
 		chat = {
-			unknown = Color("ff0044")	--Unknown command
+			unknown	= Color("ff0044"),	--Unknown command
+			spare1	= Color("33dd77"),
+			spare1	= Color("3377dd"),
 		}
 	}
 }

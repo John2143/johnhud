@@ -1,14 +1,10 @@
 setmetatable(jhud.chat, {
-	__call = function(_,name,message,color)
+	__call = function(_,name,message,color,icon)
 		if not message then
 			message = name
 			name = jhud.chat.icons.Skull
 		end
-		if managers and managers.chat and managers.chat._receivers and managers.chat._receivers[1] then
-			for __,rcv in pairs( managers.chat._receivers[1] ) do
-				rcv:receive_message(name, tostring(message), color or Color(1,1,1))
-			end
-		end
+		managers.chat:_receive_message(1, name, message, color or Color("ffffff"), icon or "icon_repair")
 	end
 })
 
@@ -44,9 +40,8 @@ function this:__init()
 	end)
 	self.lang = L:new("chat")
 	jhud.hook("ChatManager", "send_message", function(cm, channel, name, text)
-		_("THING CALLED", channel, name, text)
 		if text:sub(1,1) == "/" or text:sub(1,1) == "!" then
-			local cmd = string.gloop(text, "%w+", 0)
+			local cmd = text:sub(2):gloop("%S+", 0)
 			local ret = --This is really hacky but gets the job done
 				(self.commands[cmd[0]] or function()
 					self("CMD", string.format(self.lang("unknown"), cmd[0]), self.config.unknown)
@@ -56,8 +51,17 @@ function this:__init()
 		end
 	end)
 	self.commands = {}
+	self:addCommand("help", self.showHelp)
+	self:addCommand("test", function(chat, ...) chat("IN->" or {}, table.concat({...}, ",")) end)
 end
-
+function this:showHelp(sub)
+	local cmds = {}
+	for i,v in pairs(self.commands) do
+		table.insert(cmds, i)
+	end
+	_(cmds)
+	self("CMD", table.concat(cmds, ", "), jhud.chat.config.spare1)
+end
 function this:addCommand(name, func)
 	self.commands[name] = func
 end

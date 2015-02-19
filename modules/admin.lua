@@ -12,5 +12,6 @@ function this:kick(chat, on)
 end
 
 function this:__init()
-	jhud.chat:addCommand("kick", function(...) jhud.admin:kick(...) end)
+	jhud.chat:addCommand("kick", function(...) self:kick(true, ...) end)
+	jhud.chat:addCommand("kickb", function(...) self:kick(false, ...) end)
 end

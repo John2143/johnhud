@@ -11,9 +11,9 @@ managers.player._equipment
 
 
 
-
-
 jhud.localPlayer():camera()._camera_object:set_fov(ASEFASEGASEFASEGESGG)
 managers.skilltree:_set_points()
 
 tweak_data.skilltree.trees[treeid].tiers = table->[tier][left = 1, center = 2, right = 3]
+
+good icons: icon_locked=lock, jukebox_playing_icon=sound, mugshot_talk=speaking, icon_infamy=spade, icon_buy=plus

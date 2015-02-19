@@ -36,6 +36,18 @@ function this:__init()
 	for i,v in pairs(managers.network:session():peers()) do
 		self.plys[i] = self(i)
 	end
+	local id = jhud.net:getPeerID()
+	self.plys[id] = self(id)
+	self.plys[id].iscl = true
+
+	if jhud.chat then
+		jhud.chat:addCommand("playing", function(chat)
+			chat("Current Players", "", chat.config.spare1)
+			for i,v in pairs(self.plys) do
+				chat(i, v:name(), chat.config.spare2)
+			end
+		end)
+	end
 end
 
 function this:getPlayers(text)
