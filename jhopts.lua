@@ -91,7 +91,7 @@ jhud.options= {
 		chat = {
 			unknown	= Color("ff0044"),	--Unknown command
 			spare1	= Color("33dd77"),
-			spare1	= Color("3377dd"),
+			spare2	= Color("3377dd"),
 		}
 	}
 }

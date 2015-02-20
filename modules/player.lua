@@ -42,7 +42,7 @@ function this:__init()
 
 	if jhud.chat then
 		jhud.chat:addCommand("playing", function(chat)
-			chat("Current Players", "", chat.config.spare1)
+			chat(jhud.chat.lang("cmdplayers"), "", chat.config.spare1)
 			for i,v in pairs(self.plys) do
 				chat(i, v:name(), chat.config.spare2)
 			end
