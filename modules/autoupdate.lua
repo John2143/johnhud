@@ -34,13 +34,12 @@ function this:update(chat)
 	os.execute("curl.exe "..self:format(self.URLz).." -k > johnhud\\archive.zip")
 
 	chat("UPDATE", jhud.lang("applying"), jhud.chat.config.spare1)
-	debug.debug()
 	os.execute("del johnhud\\update\\* /Q")
 	os.execute("cd johnhud && 7za.exe x -oupdate/ archive.zip > nul")
-	for i,v in pairs(self.ignore) do
-		os.execute("del johnhud\\update\\"..v)
-	end
 	local branchthing = "\\update\\" .. self.vconf.uname.."-"..self.vconf.branch.."\\"
+	for i,v in pairs(self.ignore) do
+		os.execute("del "..branchthing..v)
+	end
 	os.execute("copy /Y johnhud"..branchthing.."* johnhud\\*")
 	os.execute("copy /Y johnhud"..branchthing.."* johnhud\\modules\\*")
 	os.execute("copy /Y johnhud"..branchthing.."* johnhud\\language\\*")
