@@ -9,14 +9,14 @@ this.ignore = {
 	"version",
 }
 
-this.URLz = "https://github.com/%s/%s/archive/%s.zip"
+this.URLz = "https://codeload.github.com/%s/%s/zip/%s"
 this.URLn = "https://raw.githubusercontent.com/%s/%s/%s/%s"
 this.sepchar = "\n"
 this.eqchar = "="
 
 
 function this:format(url, file)
-	return string.format(self.URLn, self.vconf.uname, self.vconf.project, self.vconf.branch, file)
+	return string.format(url, self.vconf.uname, self.vconf.project, self.vconf.branch, file or "")
 end
 
 function this:parse(text)
@@ -27,22 +27,24 @@ function this:parse(text)
 	return ret
 end
 
-function this:update()
-	Steam:http_reqest(self:format(self.URLz), function(success, data)
-		if not success then return false end
-		
-		_(data)
-		do return end
-		os.execute("del johnhud\\update\\* /Q")
-		os.execute("cd johnhud && 7za.exe x -oupdate/ archive.zip")
-		for i,v in pairs(self.ignore) do
-			os.execute("del johnhud\\update\\"..v)
-		end
-		os.execute("copy /Y johnhud\\update\\* johnhud\\*")
-		os.execute("copy /Y johnhud\\update\\modules\\* johnhud\\modules\\*")
-		os.execute("copy /Y johnhud\\update\\language\\* johnhud\\language\\*")
-		os.execute("del johnhud\\archive.zip /Q")
-	end)
+function this:update(chat)
+	chat = chat or function() end
+	chat("UPDATE", jhud.lang("downloading"), jhud.chat.config.spare1)
+
+	os.execute("curl.exe "..self:format(self.URLz).." -k > johnhud\\archive.zip")
+
+	chat("UPDATE", jhud.lang("applying"), jhud.chat.config.spare1)
+	debug.debug()
+	os.execute("del johnhud\\update\\* /Q")
+	os.execute("cd johnhud && 7za.exe x -oupdate/ archive.zip > nul")
+	for i,v in pairs(self.ignore) do
+		os.execute("del johnhud\\update\\"..v)
+	end
+	local branchthing = "\\update\\" .. self.vconf.uname.."-"..self.vconf.branch.."\\"
+	os.execute("copy /Y johnhud"..branchthing.."* johnhud\\*")
+	os.execute("copy /Y johnhud"..branchthing.."* johnhud\\modules\\*")
+	os.execute("copy /Y johnhud"..branchthing.."* johnhud\\language\\*")
+	os.execute("del johnhud\\archive.zip /Q")
 end
 
 function this:__init()
@@ -71,8 +73,7 @@ function this:__init()
 		if not self.newavailable then
 			chat("UPDATE", jhud.lang("nonewver"):format(self.vconf.version), jhud.chat.config.failed)
 		else
-			chat("UPDATE", jhud.lang("downloading"), jhud.chat.config.spare1)
-			self:update()
+			self:update(chat)
 		end
 	end)
 end
