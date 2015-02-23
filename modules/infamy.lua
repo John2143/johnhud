@@ -16,7 +16,6 @@ function this:__init()
 			if data.peer_id == peer:id() then
 				local name = data.character_name
 				if peer:level() then
-					_(peer:id())
 					local ply = jhud.player:getPlayerByPeerID(peer:id())
 					local experience = (peer:rank() > 0 and managers.experience:rank_string(peer:rank()) .. "-" or "") ..
 							peer:level() ..

@@ -2,7 +2,7 @@ this.vconf = {}
 
 this.vconf.uname = "John2143658709"
 this.vconf.project = "johnhud"
-this.vconf.branch = "master"
+this.vconf.branch = "dev"
 
 this.ignore = {
 	"cfg.lua",
@@ -27,12 +27,29 @@ function this:parse(text)
 	return ret
 end
 
+function this:update()
+	Steam:http_reqest(self:format(self.URLz), function(success, data)
+		if not success then return false end
+		
+		_(data)
+		do return end
+		os.execute("del johnhud\\update\\* /Q")
+		os.execute("cd johnhud && 7za.exe x -oupdate/ archive.zip")
+		for i,v in pairs(self.ignore) do
+			os.execute("del johnhud\\update\\"..v)
+		end
+		os.execute("copy /Y johnhud\\update\\* johnhud\\*")
+		os.execute("copy /Y johnhud\\update\\modules\\* johnhud\\modules\\*")
+		os.execute("copy /Y johnhud\\update\\language\\* johnhud\\language\\*")
+		os.execute("del johnhud\\archive.zip /Q")
+	end)
+end
+
 function this:__init()
+	if not Steam or not Steam.http_request then return end
 	local verfile = io.open("johnhud/version")
 	local vertab = self:parse(verfile:read("*all"))
 	verfile:close()
-	local vertab = {}
-
 	for i,v in pairs(vertab) do
 		self.vconf[i] = v
 	end
@@ -46,16 +63,16 @@ function this:__init()
 		end
 		local tab = self:parse(data)
 		if tab.version ~= self.vconf.version then
-			jhud.chat("JHUD", jhud.lang("newver"), jhud.chat.config.spare1)
+			jhud.chat("JHUD", jhud.lang("newver"):format(self.vconf.version, tab.version), jhud.chat.config.spare1)
 			self.newavailable = true
 		end
 	end)
 	jhud.chat:addCommand("update", function(chat)
 		if not self.newavailable then
-			chat("UPDATE", jhud.lang("nonewver"), jhud.chat.config.failed)
+			chat("UPDATE", jhud.lang("nonewver"):format(self.vconf.version), jhud.chat.config.failed)
 		else
 			chat("UPDATE", jhud.lang("downloading"), jhud.chat.config.spare1)
-			--self:dlupdate()
+			self:update()
 		end
 	end)
 end

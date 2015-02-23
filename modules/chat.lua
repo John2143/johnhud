@@ -40,7 +40,8 @@ function this:chatFail(lang)
 end
 
 function this:__init()
-	jhud.hook("HUDChat", "receive_message", function(hc, name, message)
+	jhud.hook("HUDChat", "receive_message", function(hc, name, message, ...)
+		_(...)
 		return {
 			[2] = jhud.chat:sterileEmotes(name),
 			[3] = jhud.chat:sterileEmotes(message)
