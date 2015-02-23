@@ -38,3 +38,5 @@ managers.player:player_unit():character_data()
 	._down_time = time left
 	._messiah_charges
 	._armor = digestable value
+
+Steam:http_request

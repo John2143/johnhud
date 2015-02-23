@@ -17,8 +17,18 @@ LOADLANGUAGE = function() return {
 		trans_error = "Translation Error",
 		affix_error = "Affixation Error",
 		cheater = "Acheivements are disabled because you are cheating",
+		newver = "There is a new version of johnhud available. Type '/update' when in a game to update.",
+		nonewver = "There is no new version available",
+		downloading = "Downloading...",
+		applying = "Applying...",
 	},
 	chat = {
-		unknown = "Unknown command '%s'"
+		unknown = "Unknown command '%s'",
+		cmdplaying = "Current players",
+		noplayer = "This command requires a player argument",
+		solo = "Currently in a solo heist",
+		requiresheist = "You must be in a heist to use this",
+		internalerror = "Internal command error (This shouldnt happen!)",
+		needhost = "You must be the host to use this",
 	}
 } end

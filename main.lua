@@ -1,14 +1,15 @@
 jhud = jhud or {}
+if not managers then return end
 jhud.debug = true
 jhud.log = function(...)
-	for i,v in pairs{...} do
+	for i,v in ipairs{...} do
 		io.write(tostring(v).."\t")
 	end
 	io.write("\n")
 end
 jhud.log("JohnHUD started.")
 table.hasValue = function(table, val)
-	for i,v in pairs(table) do
+	for i,v in ipairs(table) do
 		if v == val then
 			return true
 		end
@@ -41,7 +42,7 @@ end
 jhud.createPanel = function()
 	if not RenderSettings then return end
 	jhud.resolution = RenderSettings.resolution
-	return Overlay:gui():create_scaled_screen_workspace(jhud.resolution.x, jhud.resolution.y, 0, 0, jhud.resolution.x, jhud.resolution.y):panel({ name = "workspace_panel"})
+	return Overlay:gui():create_scaled_screen_workspace(jhud.resolution.x, jhud.resolution.y, 0, 0, jhud.resolution.x, jhud.resolution.y):panel{name = "workspace_panel"}
 end
 jhud.keyboard = Input:keyboard()
 jhud.log2 = function(...)

@@ -31,6 +31,14 @@ function this:sterileEmotes(text)
 	return text
 end
 
+this.NO_PLAYER = 1
+this.NEED_HEIST = 2
+this.NOT_HOST = 3
+
+function this:chatFail(lang)
+	self("CMD", self.lang(lang), self.config.failed)
+end
+
 function this:__init()
 	jhud.hook("HUDChat", "receive_message", function(hc, name, message)
 		return {
@@ -42,11 +50,18 @@ function this:__init()
 	jhud.hook("ChatManager", "send_message", function(cm, channel, name, text)
 		if text:sub(1,1) == "/" or text:sub(1,1) == "!" then
 			local cmd = text:sub(2):gloop("%S+", 0)
-			local ret = --This is really hacky but gets the job done
-				(self.commands[cmd[0]] or function()
+			local success, ret = pcall(self.commands[cmd[0]] or function()
 					self("CMD", string.format(self.lang("unknown"), cmd[0]), self.config.unknown)
-				end)(self, unpack(cmd))
-
+				end, self, unpack(cmd))
+			if not success then
+				self:chatFail("internalerror")
+			elseif ret == self.NO_PLAYER then
+				self:chatFail("noplayer")
+			elseif ret == self.NEED_HEIST then
+				self:chatFail("requiresheist")
+			elseif ret == self.NOT_HOST then
+				self:chatFail("needhost")
+			end
 			return true
 		end
 	end)
@@ -59,7 +74,6 @@ function this:showHelp(sub)
 	for i,v in pairs(self.commands) do
 		table.insert(cmds, i)
 	end
-	_(cmds)
 	self("CMD", table.concat(cmds, ", "), jhud.chat.config.spare1)
 end
 function this:addCommand(name, func)

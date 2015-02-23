@@ -2,20 +2,23 @@ this.getPlayers = function(self, ...)
 	return jhud.player:getPlayers(...)
 end
 
-function this:kick(noban, chat, on)
+function this:kick(ban, chat, on)
 	local plys = self:getPlayers(on)
+	if not plys[1] then return chat.NO_PLAYER end
 	for i,v in pairs(plys) do
 		v:kick()
 	end
 end
 
-function this:csay(chat, text)
-	if not jhud.net:isServer() then return end
-	jhud.net("jhud.admin.csay", text)
+function this:csay(chat, ...)
+	if not jhud.net:isServer() then return chat.NOT_HOST end
+	if not managers.hud then return chat.NEED_HEIST end
+	jhud.net("jhud.admin.csay", table.concat({...}, " "))
 end
-function this:csay2(chat, text)
-	if not jhud.net:isServer() then return end
-	jhud.net("jhud.admin.csay2", text)
+function this:csay2(chat, ...)
+	if not jhud.net:isServer() then return chat.NOT_HOST end
+	if not managers.hud then return chat.NEED_HEIST end
+	jhud.net("jhud.admin.csay2", table.concat({...}, " "):split(jhud.net._joinchar))
 end
 
 function this:docsay(text)
@@ -26,11 +29,11 @@ function this:docsay(text)
 		time = 5,
 	}
 end
-function this:docsay2(text)
-	jhud.dlog("CSAY2", text)
+function this:docsay2(top, bottom)
+	jhud.dlog("CSAY2", top, bottom)
 	managers.hud:present_mid_text{ --csay expanding box
-		title = "TODO ADD A WAY TO SET THIS",
-		text = text,
+		title = top,
+		text = bottom or "",
 		icon = "unused",
 		time = 5,
 		event = {}
@@ -38,15 +41,15 @@ function this:docsay2(text)
 end
 
 function this:__init()
-	jhud.chat:addCommand("kick", function(...) self:kick(true, ...) end)
-	jhud.chat:addCommand("kickb", function(...) self:kick(false, ...) end)
-	jhud.chat:addCommand("csay", function(...) self:csay(...) end)
-	jhud.chat:addCommand("csay2", function(...) self:csay2(...) end)
+	jhud.chat:addCommand("kick", function(...) return self:kick(false, ...) end)
+	jhud.chat:addCommand("kickb", function(...) return self:kick(true, ...) end)
+	jhud.chat:addCommand("csay", function(...) return self:csay(...) end)
+	jhud.chat:addCommand("csay2", function(...) return self:csay2(...) end)
 
 	jhud.net:hook("jhud.admin.csay", function(data)
 		self:docsay(data)
 	end)
-	jhud.net:hook("jhud.admin.csay2", function(data)
-		self:docsay2(data)
+	jhud.net:hook("jhud.admin.csay2", function(...)
+		self:docsay2(...)
 	end)
 end

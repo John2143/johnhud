@@ -12,8 +12,9 @@ jhud.options= {
 		"chat",			-- disabling this will disable johnhud from printing to your chat
 		"voice",		-- (bind) Allows you to bind keys for voicelines
 		"infamy",		-- Internal infamy stuff
-		"admin",
+		"admin",		--TODO
 		"player",
+		"autoupdate",
 	},
 	cheat = false,		-- Enable cheater modules
 	cheaterModules = {
@@ -92,6 +93,7 @@ jhud.options= {
 			unknown	= Color("ff0044"),	--Unknown command
 			spare1	= Color("33dd77"),
 			spare2	= Color("3377dd"),
+			failed	= Color("ff3333"),
 		}
 	}
 }

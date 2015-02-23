@@ -16,8 +16,12 @@ function this:__init()
 			if data.peer_id == peer:id() then
 				local name = data.character_name
 				if peer:level() then
-					local experience = (peer:rank() > 0 and managers.experience:rank_string(peer:rank()) .. "-" or "") .. peer:level() .. (jhud.player.plys[peer].isJHUD and "j" or "")
-					name = name .. " (" .. experience .. ")"
+					_(peer:id())
+					local ply = jhud.player:getPlayerByPeerID(peer:id())
+					local experience = (peer:rank() > 0 and managers.experience:rank_string(peer:rank()) .. "-" or "") ..
+							peer:level() ..
+							((peer:id() == jhud.net:getPeerID() or ply and ply:hasJHUD()) and "j" or "")
+					name = name .. " " .. L:affix(experience)
 				end
 				data.text:set_text(utf8.to_upper(name))
 				self:align_teammate_name_label(data.panel, data.interact)
