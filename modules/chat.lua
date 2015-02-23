@@ -8,9 +8,13 @@ setmetatable(jhud.chat, {
 	end
 })
 
-function this:chatAll(text, toself)
+function this:doChatAll(text)
 	managers.network:session():send_to_peers_ip_verified( 'send_chat_message', 1, text)
-	if not toself then self("JohnHUD", text) end
+end
+
+function this:chatAll(name, text, color, toself)
+	this:doChatAll(text)
+	if not toself then self(name or "JohnHUD", text) end
 end
 
 local Icon = {
@@ -51,11 +55,21 @@ function this:__init()
 	jhud.hook("ChatManager", "send_message", function(cm, channel, name, text)
 		if text:sub(1,1) == "/" or text:sub(1,1) == "!" then
 			local cmd = text:sub(2):gloop("%S+", 0)
-			local success, ret = pcall(self.commands[cmd[0]] or function()
-					self("CMD", string.format(self.lang("unknown"), cmd[0]), self.config.unknown)
-				end, self, unpack(cmd))
+			local success, ret = --If the command is not found the use a generic method that prints unknown command
+				pcall(
+					(
+						self.commands[cmd[0]] or
+						function()
+							self("CMD", string.format(self.lang("unknown"), cmd[0]), self.config.unknown)
+						end
+					),
+					self,
+					unpack(cmd)
+				)
+
 			if not success then
 				self:chatFail("internalerror")
+				jhud.log("CMDERR", ret)
 			elseif ret == self.NO_PLAYER then
 				self:chatFail("noplayer")
 			elseif ret == self.NEED_HEIST then
@@ -69,6 +83,15 @@ function this:__init()
 	self.commands = {}
 	self:addCommand("help", self.showHelp)
 	self:addCommand("test", function(chat, ...) chat("IN->" or {}, table.concat({...}, ",")) end)
+
+	jhud.hook("ChatGui", "receive_message", function(cg, name, message, color, icon)
+		local ply = jhud.player:playerByColor(color)
+		local inf = ply:infamy()
+		return{
+			[2] = (1 and inf.." " or "")..name
+		}
+	end)
+
 end
 function this:showHelp(sub)
 	local cmds = {}

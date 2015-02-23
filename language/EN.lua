@@ -1,16 +1,17 @@
 LOADLANGUAGE = function() return {
 	assault = {
-		anticipation = "Starting",		--Assault wave coming soon
-		fade = "Fade", 					--No more Spawns
-		build = "Build",				--Spawns until # of enemies reaches a certin level
-		sustain = "Sustain",			--Continues spawns to sustain that #
-		none = "Not in a heist",		--
-		control = "Control",			--Between waves
-		compromised = "Compromised",	--Assult phase has not begun, but stealth has failed (alarms, civs calling, pagers, gunshots, etc). Exactly the same as the Control phase, but this is the first.
-		stealth = "Stealth",			--Stealth
-		caution = "Caution",			--You are being detected
-		danger = "Danger",				--Somebody is alerted
+		anticipation = "Starting",
+		fade = "Fade",
+		build = "Build",
+		sustain = "Sustain",
+		none = "Not in a heist",
+		control = "Control",
+		compromised = "Compromised",
+		stealth = "Stealth",
+		caution = "Caution",
+		danger = "Danger",
 		calling = "Somebody is calling the police!",
+		pagers = "%s pagers used",
 	},
 	_ = {
 		start = "JohnHUD started",

@@ -127,7 +127,7 @@ function this:updateTagText()
 				"S "
 			) or
 			("")
-	text = text..L("assault", self.heistStatus)
+	text = text..self.lang(self.heistStatus)
 	if jhud.whisper then
 		if self.config.showpagers and self.pagersNR > 0 then
 			jhud.dlog(self.pagersNR, "pagers left.")
@@ -167,22 +167,23 @@ function this:updateDangerData(t, dt)
 	self.caution = 0
 	self.calling = 0
 	if managers.groupai and managers.groupai:state() and managers.groupai:state()._suspicion_hud_data then
+
+		local isECM= false
+		for i,v in pairs(managers.groupai:state()._ecm_jammers) do isECM = true break end
+
 		for i,v in pairs(managers.groupai:state()._suspicion_hud_data) do
 			if v.alerted then
 				self.uncool = self.uncool + 1
 				if v.icon_pos and v.u_observer then
-					if v.icon_pos.z > (90 + v.u_observer:position().z) then
+					if v.icon_pos.z > (90 + v.u_observer:position().z) then --observer position is their feet
 						self.uncoolstanding = self.uncoolstanding + 1
 					end
 				end
 			else
 				self.caution = self.caution + 1
 			end
-			if v.status == "calling" then
-				local f = false
-				for i,v in pairs(managers.groupai:state()._ecm_jammers) do f = true break end
-				if f then self.calling = self.calling + 1 end
-				--for some reason #managers.groupai:state()._ecm_jammers is always 0
+			if not isECM and v.status == "calling" then
+				self.calling = self.calling + 1
 			end
 		end
 	end
@@ -204,25 +205,25 @@ function this:__init()
 	self.pagersNR = 0
 	self.uncoolstanding = 0
 	self.heistStatus = "none"
+	self.lang = L:new("assault")
 	if jhud.net:isServer() then
 		self.pagersActive = 0 --Number of pagers that are being answered or need to be answered
 		self.deadCopsWithPagers = {}
-		local _self = self
-		jhud.hook("CopBrain", "begin_alarm_pager", function(self, reset)
+		jhud.hook("CopBrain", "begin_alarm_pager", function(cb, reset)
 			local has = false
-			for i,v in pairs(_self.deadCopsWithPagers) do
+			for i,v in pairs(self.deadCopsWithPagers) do
 				if v == self then
 					has = true
 					break
 				end
 			end
 			if not has then
-				table.insert(_self.deadCopsWithPagers, self)
+				table.insert(self.deadCopsWithPagers, self)
 				jhud.dlog("pagercop died and will pager")
-				_self.pagersActive = _self.pagersActive + 1
-				jhud.net:send("jhud.assault.pagersNR", _self.pagersNR + 1)
-				if jhud.chat and _self.config.chatPGUsed then
-					jhud.chat:chatAll(_self.pagersNR.." pagers used")
+				self.pagersActive = self.pagersActive + 1
+				jhud.net:send("jhud.assault.pagersNR", self.pagersNR + 1)
+				if jhud.chat and self.config.chatPGUsed then
+					jhud.chat:chatAll("PAGER", self.lang("pagers"):format(self.pagersNR), self.chat.spare1, false)
 				end
 			end
 		end)

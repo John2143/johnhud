@@ -11,6 +11,7 @@ function this:setInfamy(rank)
 end
 
 function this:__init()
+	do return end ----------------------
 	jhud.hook("HUDManager", "update_name_label_by_peer", function(self, peer)
 		for _, data in pairs(self._hud.name_labels) do
 			if data.peer_id == peer:id() then

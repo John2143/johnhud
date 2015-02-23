@@ -13,6 +13,19 @@ function _player:setInfamy(rank)
 	return self
 end
 
+function _player:infamy(rank)
+	if rank then
+		self.peer:set_rank(rank)
+		return self
+	else
+		return self.peer:rank()
+	end
+end
+
+function _player:color()
+	return tweak_data.chat_colors[self.id]
+end
+
 function _player:kick()
 	if not jhud.net:isServer() then return end
 	managers.network:session():remove_peer(
@@ -46,7 +59,9 @@ end
 
 setmetatable(this,  {__call = function(_, id)
 	local tab = {
-		peer = managers.network:session():peers()[id],
+		peer = managers.network:session():peers()[id] or
+				managers.network:session():local_peer(),
+
 		id = id,
 	}
 	setmetatable(tab, {__index = _player})
@@ -59,9 +74,9 @@ function this:__init()
 	for i,v in pairs(managers.network:session():peers()) do
 		self.plys[i] = self(i)
 	end
-	--local id = jhud.net:getPeerID()
-	--self.plys[id] = self(id)
-	--self.plys[id].iscl = true
+	local id = jhud.net:getPeerID()
+	self.plys[id] = self(id)
+	self.plys[id].iscl = true
 
 	if jhud.chat then
 		jhud.chat:addCommand("playing", function(chat)
@@ -75,20 +90,41 @@ end
 
 function this:isSolo()
 	for i,v in pairs(self.plys) do
-		return false
+		if v.id ~= jhud.net:getPeerID() then
+			return false
+		end
 	end
 	return true
 end
 
-function this:hasJHUD(ply, does)
-	local ply = self:playerByPeerID(ply)
-	if ply then
-		ply:hasJHUD(does)
-	end
+function this:localPlayer()
+	return self.plys[jhud.net:getPeerID()]
 end
 
 function this:playerByPeerID(id)
 	return self.plys[id]
+end
+
+local function compareFloat(a, b)
+	if b < a + .01 and b > a - .01 then
+		return true
+	end
+	return false
+end
+
+function this:playerByColor(color)
+	for i,v in pairs(self.plys) do
+		local pcolor = v:color()
+		if
+			color == pcolor or
+			compareFloat(pcolor.r, color.r) and
+			compareFloat(pcolor.b, color.b) and
+			compareFloat(pcolor.g, color.g) and
+			compareFloat(pcolor.a, color.a)
+		then
+			return v
+		end
+	end
 end
 
 function this:getPlayers(text)

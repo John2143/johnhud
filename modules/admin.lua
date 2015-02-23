@@ -3,9 +3,15 @@ this.getPlayers = function(self, ...)
 end
 
 function this:kick(ban, chat, on)
+	if not jhud.net:isServer() then return chat.NOT_HOST end
 	local plys = self:getPlayers(on)
 	if not plys[1] then return chat.NO_PLAYER end
+	chat:chatAll("KICK", chat:nice{ban and "Kicking(ban) " or "Kicking ", plys,"."}, chat.config.spare1)
+
 	for i,v in pairs(plys) do
+		if v.id == jhud.net:getPeerID() then
+			chat("KICK", chat.lang("kickself"), chat.config.failed)
+		end
 		v:kick()
 	end
 end

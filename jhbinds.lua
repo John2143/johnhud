@@ -63,5 +63,8 @@ jhud.binds = {
 	},
 	cheats = {
 		wallhack = ""
+	},
+	extra = {
+		armorup = ""
 	}
 }
