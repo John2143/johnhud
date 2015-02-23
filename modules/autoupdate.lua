@@ -19,31 +19,40 @@ function this:format(url, file)
 	return string.format(url, self.vconf.uname, self.vconf.project, self.vconf.branch, file or "")
 end
 
+local pcall = pcall --pcall gets destryoed when a Steam:http_access function is run
 function this:parse(text)
 	local f = loadstring(text)
 	local ret = {}
 	setfenv(f, ret)
-	f()
+	pcall(f)
 	return ret
 end
 
 function this:update(chat)
 	chat = chat or function() end
 	chat("UPDATE", jhud.lang("downloading"), jhud.chat.config.spare1)
-
-	os.execute("curl.exe "..self:format(self.URLz).." -k > johnhud\\archive.zip")
-
+	self:dlunzip(chat)
 	chat("UPDATE", jhud.lang("applying"), jhud.chat.config.spare1)
-	os.execute("del johnhud\\update\\* /Q")
+	self:xcopy(chat)
+end
+
+function this:dlunzip(chat)
+	os.execute("curl.exe "..self:format(self.URLz).." -k > johnhud\\archive.zip")
+	os.execute("rmdir johnhud\\update /s /q")
+	os.execute("mkdir johnhud\\update")
 	os.execute("cd johnhud && 7za.exe x -oupdate/ archive.zip > nul")
-	local branchthing = "\\update\\" .. self.vconf.uname.."-"..self.vconf.branch.."\\"
-	for i,v in pairs(self.ignore) do
-		os.execute("del "..branchthing..v)
-	end
-	os.execute("copy /Y johnhud"..branchthing.."* johnhud\\*")
-	os.execute("copy /Y johnhud"..branchthing.."* johnhud\\modules\\*")
-	os.execute("copy /Y johnhud"..branchthing.."* johnhud\\language\\*")
 	os.execute("del johnhud\\archive.zip /Q")
+end
+function this:xcopy(chat)
+	local branchthing = "johnhud\\update\\" .. self.vconf.project .."-"..self.vconf.branch
+	jhud.log(branchthing)
+	for i,v in pairs(self.ignore) do
+		os.execute("del "..branchthing.."\\"..v)
+	end
+	os.execute("xcopy /e /y "..branchthing.." johnhud")
+	self:createVerFile{
+		version = self.newavailable
+	}
 end
 
 function this:__init()
@@ -54,7 +63,6 @@ function this:__init()
 	for i,v in pairs(vertab) do
 		self.vconf[i] = v
 	end
-
 	Steam:http_request(self:format(self.URLn, "version"), function(success, data)
 		if not success then
 			jhud.dlog("error retreiving the github data")
@@ -63,9 +71,10 @@ function this:__init()
 			jhud.dlog("got github data")
 		end
 		local tab = self:parse(data)
+
 		if tab.version ~= self.vconf.version then
-			jhud.chat("JHUD", jhud.lang("newver"):format(self.vconf.version, tab.version), jhud.chat.config.spare1)
-			self.newavailable = true
+			jhud.chat("JHUD", jhud.lang("newver"):format(self.vconf.version or "?", tab.version or "?"), jhud.chat.config.spare1)
+			self.newavailable = tab.version
 		end
 	end)
 	jhud.chat:addCommand("update", function(chat)

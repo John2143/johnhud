@@ -86,6 +86,8 @@ function this:__init()
 
 	jhud.hook("ChatGui", "receive_message", function(cg, name, message, color, icon)
 		local ply = jhud.player:playerByColor(color)
+		if not ply then return end
+		if ply:name() ~= name then return end
 		local inf = ply:infamy()
 		return{
 			[2] = (1 and inf.." " or "")..name
