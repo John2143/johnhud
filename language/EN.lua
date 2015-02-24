@@ -31,5 +31,10 @@ LOADLANGUAGE = function() return {
 		requiresheist = "You must be in a heist to use this",
 		internalerror = "Internal command error (This shouldnt happen!)",
 		needhost = "You must be the host to use this",
+		kickself = "You cannot kick yourself from a game",
+		valuechange = "Value '%s' -> '%s'",
+		resetdata = "Defaulting version config settings",
+		writeunpure = "Creating a unpure version file (full data)",
+		writepure = "Creating a pure version file (version only)",
 	}
 } end

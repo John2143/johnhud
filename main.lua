@@ -34,8 +34,11 @@ string.gloop = function(text, reg, ind)
 	end
 	return ret
 end
-jhud.appValue = function(num)
-	return Applicaton:digest_value(num, true)
+jhud.digest = function(num)
+	return Application:digest_value(num, true)
+end
+jhud.undigest = function(num)
+	return Application:digest_value(num)
 end
 
 

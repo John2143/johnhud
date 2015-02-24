@@ -1,8 +1,16 @@
 this.vconf = {}
 
-this.vconf.uname = "John2143658709"
-this.vconf.project = "johnhud"
-this.vconf.branch = "dev"
+this.vconfdef = {
+	uname = "John2143658709",
+	project = "johnhud",
+	branch = jhud.debug and "dev" or "master",
+}
+
+function this:default()
+	for i,v in pairs(self.vconfdef) do
+		self.vconf[i] = v
+	end
+end
 
 this.ignore = {
 	"cfg.lua",
@@ -28,12 +36,19 @@ function this:parse(text)
 	return ret
 end
 
-function this:update(chat)
+function this:update(chat, args)
 	chat = chat or function() end
-	chat("UPDATE", jhud.lang("downloading"), jhud.chat.config.spare1)
-	self:dlunzip(chat)
-	chat("UPDATE", jhud.lang("applying"), jhud.chat.config.spare1)
-	self:xcopy(chat)
+	if not args.xcopyonly then
+		chat("UPDATE", jhud.lang("downloading"), jhud.chat.config.spare1)
+		self:dlunzip(chat)
+	end
+	if not args.dlonly then
+		chat("UPDATE", jhud.lang("applying"), jhud.chat.config.spare1)
+		self:xcopy(chat)
+	end
+	self:createVerFile{
+		version = args.version
+	}
 end
 
 function this:dlunzip(chat)
@@ -50,13 +65,11 @@ function this:xcopy(chat)
 		os.execute("del "..branchthing.."\\"..v)
 	end
 	os.execute("xcopy /e /y "..branchthing.." johnhud")
-	self:createVerFile{
-		version = self.newavailable
-	}
 end
 
 function this:__init()
 	if not Steam or not Steam.http_request then return end
+	self:default()
 	local verfile = io.open("johnhud/version")
 	local vertab = self:parse(verfile:read("*all"))
 	verfile:close()
@@ -77,19 +90,57 @@ function this:__init()
 			self.newavailable = tab.version
 		end
 	end)
-	jhud.chat:addCommand("update", function(chat)
-		if not self.newavailable then
+	jhud.chat:addCommand("update", function(chat, ...)
+		local flags = {
+			force = false,
+			dlonly = false,
+			xcopyonly = false,
+			version = self.newavailable or self.vconf.version
+		}
+		for i,v in pairs{...} do
+			if v == "-f" or v == "--force" then
+				force = true
+			elseif v == "-d" or v == "--download-only" then
+				dlonly = true
+			elseif v == "-c" or v == "--copy-only" then
+				xcopyonly = true
+			end
+		end
+		if not self.newavailable and not flags.force then
 			chat("UPDATE", jhud.lang("nonewver"):format(self.vconf.version), jhud.chat.config.failed)
 		else
-			self:update(chat)
+			self:update(chat, flags)
 		end
+	end)
+	jhud.chat:addCommand("updatedata", function(chat, ...)
+		local pure = false
+		for i,v in pairs{...} do
+			if v == "-r" or v == "--reset" then
+				self:default()
+				chat("UPDATE", chat.lang("resetdata"), chat.config.spare2)
+			elseif v == "-p" or v == "--pure" then
+				pure = true
+			else
+				local sp = v:split(":")
+				self.vconf[sp[1]] = sp[2] or self.vconfdef[sp[1]]
+				chat("UPDATE", chat.lang("valuechange"):format(sp[1], self.vconf[sp[1]]), chat.config.spare1)
+			end
+		end
+		chat("UPDATE", chat.lang(pure and "writepure" or "writeunpure"), chat.config.spare2)
+		self:createVerFile(pure)
 	end)
 end
 
-function this:createVerFile(data)
+function this:createVerFile(pure)
 	local verfile = io.open("johnhud/version", "w")
-	for i,v in pairs(self.vconf) do
-		verfile:write(i..self.eqchar..(data[i] or v)..self.sepchar)
+	if pure then
+		verfile:write("version"..self.eqchar..self.vconf.version)
+	else
+		local lines = {}
+		for i,v in pairs(self.vconf) do
+			table.insert(lines, i..self.eqchar..v)
+		end
+		verfile:write(table.concat(lines, self.sepchar))
 	end
 	verfile:close()
 end

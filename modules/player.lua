@@ -15,11 +15,22 @@ end
 
 function _player:infamy(rank)
 	if rank then
+		if self.iscl then
+			jhud.infamy:setInfamy(rank)
+		end
 		self.peer:set_rank(rank)
 		return self
 	else
-		return self.peer:rank()
+		if self.iscl then
+			return jhud.infamy:getInfamy()
+		else
+			return self.peer:rank()
+		end
 	end
+end
+
+function _player:infamystr()
+	return managers.experience:rank_string(self:infamy())
 end
 
 function _player:color()
@@ -57,6 +68,10 @@ function _player:isCheating(is)
 	end
 end
 
+function _player:toString()
+	return "Player<"..self.id.." "..self:name()..">"
+end
+
 setmetatable(this,  {__call = function(_, id)
 	local tab = {
 		peer = managers.network:session():peers()[id] or
@@ -64,7 +79,10 @@ setmetatable(this,  {__call = function(_, id)
 
 		id = id,
 	}
-	setmetatable(tab, {__index = _player})
+	setmetatable(tab, {
+		__index = _player,
+		__tostring = _player.toString,
+	})
 	return tab
 end})
 
@@ -127,8 +145,16 @@ function this:playerByColor(color)
 	end
 end
 
+local function newbase()
+	local baseTable = {}
+	setmetatable(baseTable, {
+		types = "plys"
+	})
+	return baseTable
+end
+
 function this:getPlayers(text)
-	local plys = {}
+	local plys = newbase()
 	local isRemove
 	local function doInsert(ply)
 		if isRemove then
@@ -148,10 +174,18 @@ function this:getPlayers(text)
 			isRemove = true
 			name = name:sub(2)
 		end
-
-		for k,v in pairs(self.plys) do
-			if v:name():lower():find(name) then
+		if name == "*" then
+			plys = newbase()
+			for i,v in pairs(self.plys) do
 				doInsert(v)
+			end
+		elseif name == "^" then
+			doInsert(self:localPlayer())
+		else
+			for k,v in pairs(self.plys) do
+				if v:name():lower():find(name) then
+					doInsert(v)
+				end
 			end
 		end
 	end

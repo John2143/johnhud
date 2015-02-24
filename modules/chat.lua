@@ -12,9 +12,9 @@ function this:doChatAll(text)
 	managers.network:session():send_to_peers_ip_verified( 'send_chat_message', 1, text)
 end
 
-function this:chatAll(name, text, color, toself)
-	this:doChatAll(text)
-	if not toself then self(name or "JohnHUD", text) end
+function this:chatAll(name, text, color, icon, toself)
+	self:doChatAll(text)
+	if not toself then self(name or "JohnHUD", text, color, icon) end
 end
 
 local Icon = {
@@ -44,13 +44,6 @@ function this:chatFail(lang)
 end
 
 function this:__init()
-	jhud.hook("HUDChat", "receive_message", function(hc, name, message, ...)
-		_(...)
-		return {
-			[2] = jhud.chat:sterileEmotes(name),
-			[3] = jhud.chat:sterileEmotes(message)
-		}
-	end)
 	self.lang = L:new("chat")
 	jhud.hook("ChatManager", "send_message", function(cm, channel, name, text)
 		if text:sub(1,1) == "/" or text:sub(1,1) == "!" then
@@ -60,7 +53,7 @@ function this:__init()
 					(
 						self.commands[cmd[0]] or
 						function()
-							self("CMD", string.format(self.lang("unknown"), cmd[0]), self.config.unknown)
+							self("CMD", string.format(self.lang("unknown"), cmd[0] or ""), self.config.unknown)
 						end
 					),
 					self,
@@ -83,18 +76,32 @@ function this:__init()
 	self.commands = {}
 	self:addCommand("help", self.showHelp)
 	self:addCommand("test", function(chat, ...) chat("IN->" or {}, table.concat({...}, ",")) end)
-
-	jhud.hook("ChatGui", "receive_message", function(cg, name, message, color, icon)
-		local ply = jhud.player:playerByColor(color)
-		if not ply then return end
-		if ply:name() ~= name then return end
-		local inf = ply:infamy()
-		return{
-			[2] = (1 and inf.." " or "")..name
-		}
-	end)
-
+	if self.config.showemotes then
+		jhud.hook("ChatGui", "receive_message", self.chatEmotes)
+		jhud.hook("HUDChat", "receive_message", self.chatEmotes)
+	end
+	if self.config.showinfamy then
+		jhud.hook("ChatGui", "receive_message", self.chatInfamy)
+		jhud.hook("HUDChat", "receive_message", self.chatInfamy)
+	end
 end
+
+this.chatEmotes = function(cg, name, message, ...)
+	return{
+		[2] = jhud.chat:sterileEmotes(name),
+		[3] = jhud.chat:sterileEmotes(message)
+	}
+end
+
+this.chatInfamy = function(cg, name, message, color, icon)
+	local ply = jhud.player:playerByColor(color)
+	if not ply then return end
+	if ply:name() ~= name then return end
+	return{
+		[2] = ply:infamystr().." "..name
+	}
+end
+
 function this:showHelp(sub)
 	local cmds = {}
 	for i,v in pairs(self.commands) do
@@ -102,6 +109,27 @@ function this:showHelp(sub)
 	end
 	self("CMD", table.concat(cmds, ", "), jhud.chat.config.spare1)
 end
+
+function this:nice(args)
+	local str = {}
+	for argnum,arg in ipairs(args) do
+		local type = type(arg)
+		if type == "table" then
+			local mt = getmetatable(arg)
+			if mt.types == "plys" then
+				local plys = {}
+				for i,v in pairs(arg) do
+					table.insert(plys, v:name())
+				end
+				table.insert(str, "<"..table.concat(plys, ",")..">")
+			end
+		else
+			table.insert(str, tostring(arg))
+		end
+	end
+	return table.concat(str)..(not args.noperiod and "." or "")
+end
+
 function this:addCommand(name, func)
 	self.commands[name] = func
 end

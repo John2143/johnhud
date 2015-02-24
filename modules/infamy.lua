@@ -6,8 +6,11 @@ function this:setInfamy(rank)
 --This does permanantly save to your playerfile, so its up to you to keep track.
 --Current max infamy: 5
 --Current hard coded max: 7
-		managers.experience._global.rank = Application:digest_value(rank, true)
+		managers.experience._global.rank = jhud.digest(rank)
 	end
+end
+function this:getInfamy()
+	return jhud.undigest(managers.experience._global.rank)
 end
 
 function this:__init()

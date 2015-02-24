@@ -44,7 +44,7 @@ function this:addFunctionHook(iclass, ifunc, callback)
 			local cancelFunc = false;
 			local forward = {...}
 			for i, callback in pairs(self.fhooks[iclass][ifunc]) do
-				local success, res = pcall(callback, ...) --should mabye use forward here
+				local success, res = pcall(callback, unpack(forward))
 				if success then
 					if res then
 						if type(res) == "table" then

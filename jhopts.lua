@@ -90,6 +90,8 @@ jhud.options= {
 								-- know who was detected
 		},
 		chat = {
+			showemotes = true,
+			showinfamy = true,
 			unknown	= Color("ff0044"),	--Unknown command
 			spare1	= Color("33dd77"),
 			spare2	= Color("3377dd"),
