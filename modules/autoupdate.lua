@@ -99,11 +99,11 @@ function this:__init()
 		}
 		for i,v in pairs{...} do
 			if v == "-f" or v == "--force" then
-				force = true
+				flags.force = true
 			elseif v == "-d" or v == "--download-only" then
-				dlonly = true
+				flags.dlonly = true
 			elseif v == "-c" or v == "--copy-only" then
-				xcopyonly = true
+				flags.xcopyonly = true
 			end
 		end
 		if not self.newavailable and not flags.force then
