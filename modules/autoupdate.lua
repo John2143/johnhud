@@ -130,6 +130,11 @@ function this:__init()
 		chat("UPDATE", chat.lang(pure and "writepure" or "writeunpure"), chat.config.spare2)
 		self:createVerFile(pure)
 	end)
+	jhud.chat:addCommand("version", function(chat, ...)
+		chat("Version", tostring(self.vconf.version), chat.config.spare1)
+		chat("Branch", tostring(self.vconf.branch), chat.config.spare1)
+		chat("Auhtor", tostring(self.vconf.uname), chat.config.spare1)
+	end)
 end
 
 function this:createVerFile(pure)
