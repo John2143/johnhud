@@ -52,7 +52,7 @@ function this:update(chat, args)
 end
 
 function this:dlunzip(chat)
-	os.execute("curl.exe "..self:format(self.URLz).." -k > johnhud\\archive.zip")
+	os.execute("cd johnhud && curl.exe "..self:format(self.URLz).." -k > archive.zip")
 	os.execute("rmdir /Q /S johnhud\\update")
 	os.execute("mkdir johnhud\\update")
 	os.execute("cd johnhud && 7za.exe x -oupdate/ archive.zip > nul")
