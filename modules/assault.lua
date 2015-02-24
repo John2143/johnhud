@@ -223,7 +223,7 @@ function this:__init()
 				self.pagersActive = self.pagersActive + 1
 				jhud.net:send("jhud.assault.pagersNR", self.pagersNR + 1)
 				if jhud.chat and self.config.chatPGUsed then
-					jhud.chat:chatAll("PAGER", self.lang("pagers"):format(self.pagersNR), self.chat.spare1, false)
+					jhud.chat:chatAll("PAGER", self.lang("pagers"):format(self.pagersNR), jhud.chat.config.spare1, false)
 				end
 			end
 		end)

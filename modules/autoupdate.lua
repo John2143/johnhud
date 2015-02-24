@@ -82,10 +82,11 @@ function this:__init()
 			return
 		else
 			jhud.dlog("got github data")
+			jhud.dlog("DATA", data)
 		end
 		local tab = self:parse(data)
 
-		if tab.version ~= self.vconf.version then
+		if tab.version and tab.version ~= self.vconf.version then
 			jhud.chat("JHUD", jhud.lang("newver"):format(self.vconf.version or "?", tab.version or "?"), jhud.chat.config.spare1)
 			self.newavailable = tab.version
 		end
