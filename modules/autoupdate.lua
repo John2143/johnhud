@@ -135,7 +135,7 @@ end
 function this:createVerFile(pure)
 	local verfile = io.open("johnhud/version", "w")
 	if pure then
-		verfile:write("version"..self.eqchar..self.vconf.version)
+		verfile:write("version"..self.eqchar..self.vconf.version.."--EOF--")
 	else
 		for i,v in pairs(self.vconf) do
 			verfile:write(lines, i..self.eqchar..v..self.sepchar)
