@@ -130,7 +130,7 @@ function this:updateTagText()
 	text = text..self.lang(self.heistStatus)
 	if jhud.whisper then
 		if self.config.showpagers and self.pagersNR > 0 then
-			jhud.dlog(self.pagersNR, "pagers left.")
+			jhud.dlog(self.pagersNR, "pagers used.")
 			text = text.." "..(self.config.showpagersleft and
 					4 - self.pagersNR or
 					self.pagersNR
@@ -218,7 +218,7 @@ function this:__init()
 				end
 			end
 			if not has then
-				table.insert(self.deadCopsWithPagers, self)
+				table.insert(self.deadCopsWithPagers, cb)
 				jhud.dlog("pagercop died and will pager")
 				self.pagersActive = self.pagersActive + 1
 				jhud.net:send("jhud.assault.pagersNR", self.pagersNR + 1)
