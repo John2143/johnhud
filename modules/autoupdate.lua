@@ -46,9 +46,7 @@ function this:update(chat, args)
 		chat("UPDATE", jhud.lang("applying"), jhud.chat.config.spare1)
 		self:xcopy(chat)
 	end
-	self:createVerFile{
-		version = args.version
-	}
+	self.vconf.version = args.version
 end
 
 function this:dlunzip(chat)
