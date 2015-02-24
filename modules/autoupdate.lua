@@ -138,7 +138,7 @@ function this:createVerFile(pure)
 		verfile:write("version"..self.eqchar..self.vconf.version.."--EOF--")
 	else
 		for i,v in pairs(self.vconf) do
-			verfile:write(lines, i..self.eqchar..v..self.sepchar)
+			verfile:write(i..self.eqchar..v..self.sepchar)
 		end
 		verfile:write("--EOF--")
 	end
