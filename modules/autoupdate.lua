@@ -47,6 +47,7 @@ function this:update(chat, args)
 		self:xcopy(chat)
 	end
 	self.vconf.version = args.version
+	self:createVerFile()
 end
 
 function this:dlunzip(chat)
