@@ -53,7 +53,7 @@ end
 
 function this:dlunzip(chat)
 	os.execute("curl.exe "..self:format(self.URLz).." -k > johnhud\\archive.zip")
-	os.execute("rmdir johnhud\\update /s /q")
+	os.execute("rmdir /Q /S johnhud\\update")
 	os.execute("mkdir johnhud\\update")
 	os.execute("cd johnhud && 7za.exe x -oupdate/ archive.zip > nul")
 	os.execute("del johnhud\\archive.zip /Q")
