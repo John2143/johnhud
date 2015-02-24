@@ -137,11 +137,10 @@ function this:createVerFile(pure)
 	if pure then
 		verfile:write("version"..self.eqchar..self.vconf.version)
 	else
-		local lines = {}
 		for i,v in pairs(self.vconf) do
-			table.insert(lines, i..self.eqchar..v)
+			verfile:write(lines, i..self.eqchar..v..self.sepchar)
 		end
-		verfile:write(table.concat(lines, self.sepchar))
+		verfile:write("--EOF--")
 	end
 	verfile:close()
 end
