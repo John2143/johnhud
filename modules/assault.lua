@@ -78,7 +78,7 @@ function this:updateTag(t, dt)
 		if jhud.net:isServer() then
 			if lastUncoolStanding ~= self.uncoolstanding then
 				lastUncoolStanding = self.uncoolstanding
-				jhud.net:send("jhud.assault.uncoolstanding", self.uncoolstanding)
+				jhud.net:send("jhud.assault.standing", self.uncoolstanding)
 			end
 			if lastUncool ~= self.uncool then
 				lastUncool = self.uncool

@@ -72,7 +72,11 @@ function this:__init()
 			--  ...|5,4,1|... -- only preform net method 5 if you are peer 4 or peer 1
 
 			local methoddata = string.split(dat[-1], ",", 0)
+			for i,v in pairs(methoddata) do
+				methoddata[i] = tonumber(v)
+			end
 			local method = methoddata[0]
+
 
 			if method == self.TO_HOST and self:isServer() or
 					method == self.TO_PEERS then
