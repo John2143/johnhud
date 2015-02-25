@@ -3,7 +3,7 @@ this.vconf = {}
 this.vconfdef = {
 	uname = "John2143658709",
 	project = "johnhud",
-	branch = jhud.debug and "dev" or "master",
+	branch = "master",
 }
 
 function this:default()

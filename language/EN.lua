@@ -36,5 +36,6 @@ LOADLANGUAGE = function() return {
 		resetdata = "Defaulting version config settings",
 		writeunpure = "Creating a unpure version file (full data)",
 		writepure = "Creating a pure version file (version only)",
+		missingarguments = "This command needs additional arguments",
 	}
 } end

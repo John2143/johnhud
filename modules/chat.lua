@@ -38,6 +38,7 @@ end
 this.NO_PLAYER = 1
 this.NEED_HEIST = 2
 this.NOT_HOST = 3
+this.MISSING_ARGUMENTS = 4
 
 function this:chatFail(lang)
 	self("CMD", self.lang(lang), self.config.failed)
@@ -69,6 +70,8 @@ function this:__init()
 				self:chatFail("requiresheist")
 			elseif ret == self.NOT_HOST then
 				self:chatFail("needhost")
+			elseif ret == self.MISSING_ARGUMENTS then
+				self:chatFail("missingarguments")
 			end
 			return true
 		end

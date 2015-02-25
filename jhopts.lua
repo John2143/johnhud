@@ -15,6 +15,7 @@ jhud.options= {
 		"admin",		--TODO
 		"player",
 		"autoupdate",
+		"preplanning",
 	},
 	cheat = false,		-- Enable cheater modules
 	cheaterModules = {
