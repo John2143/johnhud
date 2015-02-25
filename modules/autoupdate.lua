@@ -118,6 +118,9 @@ function this:__init()
 			if v == "-r" or v == "--reset" then
 				self:default()
 				chat("UPDATE", chat.lang("resetdata"), chat.config.spare2)
+			elseif v == "-+" or v == "--next" then
+				self.vconf.version = math.floor(self.vconf.version + 1)
+				chat("UPDATE", chat.lang("valuechange"):format("version", self.vconf.version), chat.config.spare2)
 			elseif v == "-p" or v == "--pure" then
 				pure = true
 			else

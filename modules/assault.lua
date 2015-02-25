@@ -210,14 +210,7 @@ function this:__init()
 		self.pagersActive = 0 --Number of pagers that are being answered or need to be answered
 		self.deadCopsWithPagers = {}
 		jhud.hook("CopBrain", "begin_alarm_pager", function(cb, reset)
-			local has = false
-			for i,v in pairs(self.deadCopsWithPagers) do
-				if v == self then
-					has = true
-					break
-				end
-			end
-			if not has then
+			if not table.hasValue(self.deadCopsWithPagers, cb) then
 				table.insert(self.deadCopsWithPagers, cb)
 				jhud.dlog("pagercop died and will pager")
 				self.pagersActive = self.pagersActive + 1
