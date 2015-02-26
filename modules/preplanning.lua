@@ -88,18 +88,25 @@ function this:enactPlan(plan, dovotes, doother)
 	return false
 end
 
-function this:currentHeist()
-	return "bb"
+function this:currentHeist(refresh)
+	if not self._currentHeist or refresh then
+		self._currentHeist = nil
+		for i,v in pairs(tweak_data.preplanning.locations) do
+			if v == managers.preplanning:current_location_data() then
+				self._currentHeist = i
+			end
+		end
+	end
+	return self._currentHeist
 end
 
 function this:savePlan(name, plan)
-	local heist = self:currentHeist()
-	self.savedPlans[heist] = self.savedPlans[heist] or {}
-	self.savedPlans[heist][name] = plan
+	self.savedPlans[name] = plan
+	jhud.save("pp/"..self:currentHeist(), self.savedPlans)
 end
 
 function this:loadPlans()
-	self.savedPlans = {}
+	self.savedPlans = jhud.load("pp/"..self:currentHeist())
 end
 
 function this:chatPlan(chat, name, v, concise, pre)
@@ -149,8 +156,8 @@ function this:__init()
 			end
 		end
 		if name then
-			local plan = (self.savedPlans[self:currentHeist()] or {})[name]
-			if not plan then chat("PLAN", self.lang("notfound"), chat.config.failed) return end
+			local plan = self.savedPlans[name]
+			if not plan then chat("PLAN", self.lang("notfound"):format(name), chat.config.failed) return end
 			if printOnly then
 				self:chatPlan(chat, name, plan, false, "P")
 			else
@@ -158,7 +165,7 @@ function this:__init()
 				self:chatPlan(chat, name, plan, true, "DO")
 			end
 		else
-			for i,v in pairs(self.savedPlans[self:currentHeist()] or {}) do
+			for i,v in pairs(self.savedPlans) do
 				self:chatPlan(chat, i, v, true)
 			end
 		end

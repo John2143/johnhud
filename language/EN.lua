@@ -43,5 +43,6 @@ LOADLANGUAGE = function() return {
 		favors = "Favors",
 		num = "# of plans (%s)",
 		other = "Placed objects",
+		notfound = "The plan '%s' was not found",
 	}
 } end
