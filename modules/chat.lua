@@ -4,7 +4,12 @@ setmetatable(jhud.chat, {
 			message = name
 			name = jhud.chat.icons.Skull
 		end
-		managers.chat:_receive_message(1, name, message, color or Color("ffffff"), icon or "icon_repair")
+		if icon == true or icon == false or icon == "none" or icon == "no_icon" then
+			icon = false
+		else
+			icon = icon or "icon_repair"
+		end
+		managers.chat:_receive_message(1, tostring(name), tostring(message), color or Color("ffffff"), icon)
 	end
 })
 
@@ -63,7 +68,7 @@ function this:__init()
 
 			if not success then
 				self:chatFail("internalerror")
-				jhud.log("CMDERR", ret)
+				jhud.log("CMDERR", cmd[0], ret, "ARGS", unpack(cmd))
 			elseif ret == self.NO_PLAYER then
 				self:chatFail("noplayer")
 			elseif ret == self.NEED_HEIST then

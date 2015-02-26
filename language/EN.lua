@@ -37,5 +37,11 @@ LOADLANGUAGE = function() return {
 		writeunpure = "Creating a unpure version file (full data)",
 		writepure = "Creating a pure version file (version only)",
 		missingarguments = "This command needs additional arguments",
+	},
+	preplanning = {
+		cost = "Cost (%s)",
+		favors = "Favors",
+		num = "# of plans (%s)",
+		other = "Placed objects",
 	}
 } end
