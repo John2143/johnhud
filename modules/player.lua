@@ -86,16 +86,19 @@ setmetatable(this,  {__call = function(_, id)
 	return tab
 end})
 
-function this:__init()
-	self.plys = {}
-	if not (managers.network and managers.network:session()) then return end
+function this:loadPlys()
 	for i,v in pairs(managers.network:session():peers()) do
 		self.plys[i] = self(i)
 	end
-	local id = jhud.net:getPeerID()
-	self.plys[id] = self(id)
-	self.plys[id].iscl = true
-
+	local localid = jhud.net:getPeerID()
+	local localplayer = self(localid)
+	localplayer.iscl = true
+	self.plys[localid] = localplayer
+end
+function this:__init()
+	if not (managers.network and managers.network:session()) then return end
+	self.plys = {}
+	self:loadPlys()
 	if jhud.chat then
 		jhud.chat:addCommand("playing", function(chat)
 			chat(chat.lang("cmdplaying"), self:isSolo() and chat.lang("solo") or "", chat.config.spare1)

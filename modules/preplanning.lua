@@ -124,7 +124,7 @@ function this:chatPlan(chat, name, v, concise, pre)
 end
 
 function this:__init()
-	if not (managers.preplanning and jhud.chat) then return end
+	if not (managers.preplanning and jhud.chat and self:currentHeist()) then return end
 	self.lang = L:new("preplanning")
 	self:loadPlans()
 	jhud.chat:addCommand("prsv", function(chat, ...)

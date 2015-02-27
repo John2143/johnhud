@@ -26,8 +26,16 @@ function this:call(fname, ...)
 	return ret
 end
 function this:restore(iclass, ifunc)
+	jhud.dlog("Restored ", iclass, ifunc)
 	_G[iclass][ifunc] = self.func[iclass][ifunc]
 	self.fhooks[iclass][ifunc] = nil
+end
+function this:restoreAll()
+	for i,v in pairs(self.fhooks) do
+		for k,x in pairs(v) do
+			self:restore(i, k)
+		end
+	end
 end
 function this:addFunctionHook(iclass, ifunc, callback)
 	jhud.dlog("Hooking "..iclass..":"..ifunc)
@@ -59,7 +67,7 @@ function this:addFunctionHook(iclass, ifunc, callback)
 					jhud.log("ERROR: ", res)
 				end
 			end
-			if not cancelFunc then self.func[iclass][ifunc](unpack(forward)) end
+			if not cancelFunc then return self.func[iclass][ifunc](unpack(forward)) end
 		end
 	end
 	table.insert(self.fhooks[iclass][ifunc], callback)

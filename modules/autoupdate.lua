@@ -75,7 +75,9 @@ function this:__init()
 	for i,v in pairs(vertab) do
 		self.vconf[i] = v
 	end
-	Steam:http_request(self:format(self.URLn, "version"), function(success, data)
+	local url = self:format(self.URLn, "version")
+	jhud.dlog("Reqesting url", url)
+	Steam:http_request(url, function(success, data)
 		if not success then
 			jhud.dlog("error retreiving the github data")
 			return
