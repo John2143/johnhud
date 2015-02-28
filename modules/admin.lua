@@ -1,3 +1,5 @@
+jhud.rmod("chat")
+jhud.rmod("player")
 this.getPlayers = function(self, ...)
 	return jhud.player:getPlayers(...)
 end

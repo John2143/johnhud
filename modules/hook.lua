@@ -31,7 +31,7 @@ function this:restore(iclass, ifunc)
 	self.fhooks[iclass][ifunc] = nil
 end
 function this:restoreAll()
-	for i,v in pairs(self.fhooks) do
+	for i,v in pairs(self.fhooks or {}) do
 		for k,x in pairs(v) do
 			self:restore(i, k)
 		end
@@ -73,7 +73,10 @@ function this:addFunctionHook(iclass, ifunc, callback)
 	table.insert(self.fhooks[iclass][ifunc], callback)
 	return true
 end
-function this:__init()
+function this:__cleanup(carry)
+	self:restoreAll()
+end
+function this:__init(carry)
 	self.fhooks = {}
 	self.lhooks = {}
 	self.func = {}

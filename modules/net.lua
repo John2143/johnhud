@@ -1,3 +1,4 @@
+jhud.wmod("player")
 --Note on unpack
 -- Unpack will always ignore element 0, so I use that to store the name
 -- and return the correct value every time

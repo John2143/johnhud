@@ -1,8 +1,11 @@
 jhud = jhud or {}
 if not managers then return end
-if jhud.hook then
-	jhud.hook:restoreAll()
+for i,v in pairs(jhud) do
+	if type(v) == "table" and v.__cleanup then
+		pcall(v.__cleanup, jhud.carry)
+	end
 end
+jhud = {carry = jhud.carry}
 jhud.debug = true
 jhud.log = function(...)
 	for i,v in ipairs{...} do
@@ -43,173 +46,6 @@ end
 jhud.undigest = function(num)
 	return Application:digest_value(num)
 end
-do
-	local split = ",\n"
-	local splitnoval = "\n"
-	local val = "="
-	local tstart = "{"
-	local tend = "}"
-	local ttv = {
-		number = function(a)
-			return tostring(a)
-		end,
-		string = function(a)
-			return '"'..a..'"'
-		end,
-		boolean = function(a)
-			return a and "true" or "false"
-		end
-	}
-	local tti = {
-		string = function(a)
-			return a
-		end
-	}
-
-	local function safe(value, index)
-		local typ = type(value)
-		local def = ttv[typ]
-		if index then
-			if tti[typ] then
-				return tti[typ](value)
-			else
-				return L:affix(def(value))
-			end
-		else
-			return def(value) or "nil"
-		end
-	end
-	local function write(h, tab)
-		for i,v in pairs(tab) do
-			if type(v) == "table" then
-				h:write(safe(i, true)..val..tstart..splitnoval)
-				write(h, v)
-				h:write(tend..split)
-			else
-				h:write(safe(i, true)..val..safe(v, false)..split)
-			end
-		end
-	end
-	jhud.save = function(path, tab)
-		local handle = io.open("johnhud/data/"..path, "w")
-		if not handle then return false end
-		write(handle, tab)
-		handle:close()
-		return true
-	end
-	jhud.load = function(path)
-		local handle = io.open("johnhud/data/"..path, "r")
-		if not handle then return {}, true end
-		local func = loadstring(table.concat{"RETURN = {",handle:read("*all"), "}"})
-		handle:close()
-		local ret = {}
-		setfenv(func, ret)
-		local suc, err = pcall(func)
-		if not suc then
-			jhud.log("LOADERR", err)
-			return {}, true
-		else
-			return ret.RETURN
-		end
-	end
-end
-do
-	--bit opterations
-	-- b1 + b2 = bitwise or
-	-- b1 * b2 = bitwise and
-	-- b1 % b2 = bitwise xor
-
-	local NUMS = {}
-	local maxbit = 64
-	for i = 1, maxbit do
-		NUMS[i] = 2^(i - 1)
-	end
-	local _bit = {}
-	local bitfunc = {}
-	local bit = function(a)
-		local bitrep
-		if type(a) == "number" then
-			bitrep = {}
-			for i = maxbit, 1, -1 do
-				local num = NUMS[i]
-				local res = a - num
-				if res >= 0 then
-					a = res
-					bitrep[i] = true
-				else
-					bitrep[i] = false
-				end
-			end
-		else
-			bitrep = a
-		end
-		setmetatable(bitrep, _bit)
-		return bitrep
-	end
-	bitfunc.bor = function(a, b)
-		local new = {}
-		for i,v in pairs(a) do
-			if b[i] or v then
-				new[i] = true
-			else
-				new[i] = false
-			end
-		end
-		return bit(new)
-	end
-	bitfunc.band = function(a, b)
-		local new = {}
-		for i,v in pairs(a) do
-			if b[i] and v then
-				new[i] = true
-			else
-				new[i] = false
-			end
-		end
-		return bit(new)
-	end
-	bitfunc.bxor = function(a, b)
-		local new = {}
-		for i,v in pairs(a) do
-			if (b[i] and not v) or (not b[i] and v) then
-				new[i] = true
-			else
-				new[i] = false
-			end
-		end
-		return bit(new)
-	end
-	bitfunc.base10 = function(bit)
-		local num = 0
-		for i,v in pairs(bit) do
-			if v then num = num + NUMS[i] end
-		end
-		return num
-	end
-	_bit.__add = bitfunc.bor
-	_bit.__mul = bitfunc.band
-	_bit.__mod = bitfunc.bxor
-	_bit.__index = {
-		rep = bitfunc.base10
-	}
-
-	jhud.bit = bit
-	jhud.bitm = {}
-	setmetatable(jhud.bitm, {__index = function(__, want)
-		if bitfunc[want] then
-			return function(...)
-				local args = {...}
-				_(args)
-				for i,v in pairs(args) do
-					args[i] = bit(tonumber(v))
-				end
-				return bitfunc.base10(bitfunc[want](unpack(args)))
-			end
-		end
-	end})
-
-end
-
 jhud.createPanel = function()
 	if not RenderSettings then return end
 	jhud.resolution = RenderSettings.resolution
@@ -239,6 +75,26 @@ function jhud.addCheatModule(tab)
 	end
 end
 
+jhud.wantedModules = {}
+jhud.requiredModules = {}
+jhud.requiredLibraries = {}
+
+function jhud.rlib(name)
+	if not table.hasValue(jhud.requiredLibraries, name) then
+		table.insert(jhud.requiredLibraries, name)
+	end
+end
+function jhud.wmod(name)
+	if not table.hasValue(jhud.wantedModules, name) then
+		table.insert(jhud.wantedModules, name)
+	end
+end
+function jhud.rmod(name)
+	if not table.hasValue(jhud.requiredModules, name) then
+		table.insert(jhud.requiredModules, name)
+	end
+end
+
 dofile 'johnhud/jhopts.lua'--REP
 dofile 'johnhud/jhbinds.lua'--REP
 dofile 'johnhud/cfg.lua'--REP
@@ -257,9 +113,27 @@ for i,v in ipairs(jhud.options.modules) do
 end
 --E
 this = nil
+
+jhud.rmod("net")
+jhud.rmod("hook")
+jhud.rmod("language")
+
+for i,v in pairs(jhud.requiredModules) do
+	if not jhud[v] then
+		jhud.log("You are missing a requried module", v)
+	end
+end
+for i,v in pairs(jhud.wantedModules) do
+	if not jhud[v] then
+		jhud.log("You may be missing functionality because module", v, "is not active")
+	end
+end
+for i,v in pairs(jhud.requiredLibraries) do
+	dofile(string.format('johnhud/lib/%s.lua', v))
+end
 for i,v in pairs(jhud.options.modules) do
 	if jhud[v].__init then
-		local suc, err = pcall(jhud[v].__init, jhud[v])
+		local suc, err = pcall(jhud[v].__init, jhud[v], jhud.carry)
 		if err then jhud.log(err) end
 	end
 end

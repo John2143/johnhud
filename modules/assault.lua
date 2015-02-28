@@ -1,3 +1,5 @@
+jhud.wmod("chat")
+
 function this:getPagersUsed()
 	return managers.groupai and (managers.groupai:state():get_nr_successful_alarm_pager_bluffs()) or -1
 end

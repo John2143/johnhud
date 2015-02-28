@@ -1,3 +1,4 @@
+jhud.rmod("chat")
 this.vconf = {}
 
 this.vconfdef = {
@@ -21,7 +22,6 @@ this.URLz = "https://codeload.github.com/%s/%s/zip/%s"
 this.URLn = "https://raw.githubusercontent.com/%s/%s/%s/%s"
 this.sepchar = "\n"
 this.eqchar = "="
-
 
 function this:format(url, file)
 	return string.format(url, self.vconf.uname, self.vconf.project, self.vconf.branch, file or "")

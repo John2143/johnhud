@@ -1,3 +1,8 @@
+jhud.rlib("big")
+jhud.wmod("chat")
+jhud.rmod("net")
+jhud.rlib("file")
+
 local _player = {}
 
 function _player:name()
@@ -11,6 +16,15 @@ end
 function _player:setInfamy(rank)
 	self.peer:set_rank(rank)
 	return self
+end
+
+function _player:steamID()
+	if not self._steamID then
+		local uid = jhud.bignum(self.peer._user_id, 10) - _player.steamid0
+		local last, server = uid:div(2)
+		self._steamID = ("STEAM_0:%s:%s"):format(server, last:print())
+	end
+	return self._steamID
 end
 
 function _player:infamy(rank)
@@ -83,10 +97,16 @@ setmetatable(this,  {__call = function(_, id)
 		__index = _player,
 		__tostring = _player.toString,
 	})
+
+	if table.hasValue(_.ignored, tab:steamID()) then
+		tab.ignore = true
+	end
 	return tab
 end})
 
 function this:loadPlys()
+	self.plys = {}
+	self.ignored = jhud.load("ignored")
 	for i,v in pairs(managers.network:session():peers()) do
 		self.plys[i] = self(i)
 	end
@@ -95,21 +115,66 @@ function this:loadPlys()
 	localplayer.iscl = true
 	self.plys[localid] = localplayer
 end
-function this:__init()
-	if not (managers.network and managers.network:session()) then return end
-	self.plys = {}
+
+function this:active()
+	if self.isactive then return true end
+	self.isactive = true
+	self.isactive = self:activate()
+	jhud.dlog("Activated player", self.isactive)
+	return self.isactive
+end
+this.__init = this.active
+
+function this:activate()
+	if not (managers.network and managers.network:session()) then return false end
+	_player.steamid0 = jhud.bignum("76561197960265728", 10)
 	self:loadPlys()
+	jhud.hook("BaseNetworkSession", "add_peer", function(self, ...) ------
+		self.plys[i] = self(i)
+	end)
 	if jhud.chat then
 		jhud.chat:addCommand("playing", function(chat)
 			chat(chat.lang("cmdplaying"), self:isSolo() and chat.lang("solo") or "", chat.config.spare1)
 			for i,v in pairs(self.plys) do
-				chat(i, v:name(), chat.config.spare2)
+				chat(i, v:name()..", "..v:steamID(), chat.config.spare2)
 			end
 		end)
+		jhud.chat:addCommand("reload", function(chat)
+			self:loadPlys()
+		end)
+		jhud.chat:addCommand("ignore", function(chat, arg)
+			local plys = self:getPlayers(arg)
+			if not plys[1] then return chat.NO_PLAYER end
+			chat("IGN", chat:nice{chat.lang("ignoring"), plys}, chat.config.spare3)
+			for i,v in pairs(plys) do
+				if not table.hasValue(self.ignored, v:steamID()) then
+					table.insert(self.ignored, v:steamID())
+					v.ignore = true
+				end
+			end
+			jhud.save("ignored", self.ignored)
+		end)
+		jhud.chat:addCommand("unignore", function(chat, arg)
+			local plys = self:getPlayers(arg)
+			if not plys[1] then return chat.NO_PLAYER end
+			for i,v in pairs(plys) do
+				if v.ignore then
+					for k,x in pairs(self.ignored) do
+						if x == v:steamID() then
+							table.remove(self.ignored, k)
+						end
+					end
+					v.ignore = false
+					chat("IGN", chat.lang("unignore"):format(v:name()), chat.config.spare1)
+				end
+			end
+			jhud.save("ignored", self.ignored)
+		end)
 	end
+	return true
 end
-
 function this:isSolo()
+	if not self:active() then return false end
 	for i,v in pairs(self.plys) do
 		if v.id ~= jhud.net:getPeerID() then
 			return false
@@ -119,10 +184,12 @@ function this:isSolo()
 end
 
 function this:localPlayer()
+	if not self:active() then return false end
 	return self.plys[jhud.net:getPeerID()]
 end
 
 function this:playerByPeerID(id)
+	if not self:active() then return false end
 	return self.plys[id]
 end
 
@@ -132,8 +199,8 @@ local function compareFloat(a, b)
 	end
 	return false
 end
-
 function this:playerByColor(color)
+	if not self:active() then return false end
 	for i,v in pairs(self.plys) do
 		local pcolor = v:color()
 		if
@@ -157,6 +224,7 @@ local function newbase()
 end
 
 function this:getPlayers(text)
+	if not self:active() then return {} end
 	local plys = newbase()
 	local isRemove
 	local function doInsert(ply)

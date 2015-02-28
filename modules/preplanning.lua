@@ -1,3 +1,5 @@
+jhud.rmod("chat")
+jhud.rlib("file")
 function this:getCurrentPlan(plan)
 	local id = jhud.net:getPeerID()
 	local vote = managers.preplanning._players_votes[id]
@@ -161,8 +163,12 @@ function this:__init()
 			if printOnly then
 				self:chatPlan(chat, name, plan, false, "P")
 			else
-				self:enactPlan(plan, dovotes, doother)
-				self:chatPlan(chat, name, plan, true, "DO")
+				local err = self:enactPlan(plan, dovotes, doother)
+				if err then
+					chat("DOPLAN", self.lang(err), chat.config.failed)
+				else
+					self:chatPlan(chat, name, plan, true, "DO")
+				end
 			end
 		else
 			for i,v in pairs(self.savedPlans) do
