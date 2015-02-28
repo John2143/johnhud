@@ -129,7 +129,7 @@ function this:activate()
 	if not (managers.network and managers.network:session()) then return false end
 	_player.steamid0 = jhud.bignum("76561197960265728", 10)
 	self:loadPlys()
-	jhud.hook("BaseNetworkSession", "add_peer", function(self, ...) ------
+	jhud.hook("BaseNetworkSession", "add_peer", function(self, name, rpc, in_lobby, loading, synched, i, ...)------
 		self.plys[i] = self(i)
 	end)
 	if jhud.chat then
