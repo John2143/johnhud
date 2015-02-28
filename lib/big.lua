@@ -134,7 +134,7 @@ function numfunc.doadd(a, b)
 end
 function numfunc.dosub(arg1, arg2)
 	local a,b,endneg
-	if arg2 > arg1 then
+	if arg2:compare(arg1) == -1 then
 		a,b = arg2, arg1
 		endneg = true
 	else

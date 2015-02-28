@@ -18,9 +18,13 @@ function _player:setInfamy(rank)
 	return self
 end
 
+function _player:cID()
+	return self.peer._user_id
+end
+
 function _player:steamID()
 	if not self._steamID then
-		local uid = jhud.bignum(self.peer._user_id, 10) - _player.steamid0
+		local uid = jhud.bignum(self:cID(), 10) - _player.steamid0
 		local last, server = uid:div(2)
 		self._steamID = ("STEAM_0:%s:%s"):format(server, last:print())
 	end
@@ -98,7 +102,7 @@ setmetatable(this,  {__call = function(_, id)
 		__tostring = _player.toString,
 	})
 
-	if table.hasValue(_.ignored, tab:steamID()) then
+	if table.hasValue(_.ignored, tab:cID()) then
 		tab.ignore = true
 	end
 	return tab
@@ -129,8 +133,11 @@ function this:activate()
 	if not (managers.network and managers.network:session()) then return false end
 	_player.steamid0 = jhud.bignum("76561197960265728", 10)
 	self:loadPlys()
-	jhud.hook("BaseNetworkSession", "add_peer", function(self, name, rpc, in_lobby, loading, synched, i, ...)------
+	jhud.hook("BaseNetworkSession", "add_peer", function(bns, name, rpc, in_lobby, loading, synched, i, ...)------
 		self.plys[i] = self(i)
+	end)
+	jhud.hook("BaseNetworkSession", "remove_peer", function(bns, peer, i, reason)------
+		self.plys[i] = nil
 	end)
 	if jhud.chat then
 		jhud.chat:addCommand("playing", function(chat)
@@ -147,8 +154,8 @@ function this:activate()
 			if not plys[1] then return chat.NO_PLAYER end
 			chat("IGN", chat:nice{chat.lang("ignoring"), plys}, chat.config.spare3)
 			for i,v in pairs(plys) do
-				if not table.hasValue(self.ignored, v:steamID()) then
-					table.insert(self.ignored, v:steamID())
+				if not table.hasValue(self.ignored, v:cID()) then
+					table.insert(self.ignored, v:cID())
 					v.ignore = true
 				end
 			end
@@ -160,7 +167,7 @@ function this:activate()
 			for i,v in pairs(plys) do
 				if v.ignore then
 					for k,x in pairs(self.ignored) do
-						if x == v:steamID() then
+						if x == v:cID() then
 							table.remove(self.ignored, k)
 						end
 					end
