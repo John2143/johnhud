@@ -25,7 +25,18 @@ r01x_sin	--Affirmative
 r02a_sin	--I cant understand anything that chains says here
 g41x_any	--IM BLIND
 g42x_any	--GASSSSS
-
+g22 		--this drill sucks
+g24 		--aaaaaaaaNNNDD SCOOORE
+g30 		--bulldozer history
+g31x_any 	--shield history
+g32x_any 	--taser history
+g33x_any 	--no more cloaker
+g35x_any 	--that sniper got what he deserved
+g41x_any 	--I'M BLIND AAAAAAGh
+g42x_any 	--AAAAAAGH GAs
+g43 		--BOMB
+g65 		--two minutes
+whistling_attention 	--give me the coke and you'll get your gold
 
 ban_q01..char		--[character] is in a pickle
 ban_r01				--Extraction team (2)

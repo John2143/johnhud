@@ -40,3 +40,137 @@ managers.player:player_unit():character_data()
 	._armor = digestable value
 
 Steam:http_request
+
+--START RAINS STUFF-----------------------------------------------------------------------------------
+note: sound_event s are probably global, not sure
+renote: they are not
+    but a lot of them are
+
+===General Lines===
+
+play_pln_gen_count_0[number] - bain counting
+play_pln_gen_lkgo_01 - Through the window
+play_pln_gen_att_13 - cops stairwell
+play_pln_gen_att_11 -->
+
+l2n_b06 - no sign of intruders here
+l2n_b07
+l2n_b08 - no sign of trespassers on first floor
+l2n_b12 - balcony is ok
+l2n_b16 - security door is closed
+l2n_b18 - camera looks fine
+l2n_b22
+l2n_b24
+(try everything from 01-24)
+
+gus_preplan_15--<
+gus_preplan_06 - a line of code, this algorithm
+gus_preplan_02 - thermthermthermtherm
+gus_preplan_01 - opening lines
+gus_preplan_18 - conversion into success
+gus_preplan_17 - lbrtle: elevator?
+gus_preplan_16 - i agree
+po1_cvn_sth_xxx_xxx
+
+g10 - careful
+p01 - alright, lets do this etc
+
+===Ambience - Probably Global===
+
+mute
+
+- Framing Frame -
+
+elevator_ding_dh - ding
+expensive_alarm_on_slow_fade - expensive alarm on slow fade (framing frame's alarm)
+server_noise_loop 
+dsp_radio_buzz - generic radio buzz
+laser_shutdown_left
+laser_shutdown_right
+laser_warning_on_left
+laser_warning_on_right
+bag_heavy_drop
+hacking_device
+
+- Hoxton Breakout -
+
+bdz_entrance
+policecar_approaching - weewoo (warning: this loops forever)
+
+Play_rb5_hb1_05(1-5)
+     1   [_editor_name] = Hoxton gets up
+
+l4n_lk3a - exclamations from the driver
+
+
+
+- Roberts -
+
+branch_bank_phone_call 
+christmas_radio
+art_galley_alarm_on_slow_fade
+wall_explode_crisp
+christmas_radio_end
+branch_bank_phone_call_pickup
+
+- Pines -
+
+Stop_pt2
+mga_s03
+trip_mine_explode
+christmas_radio
+fire_small_mono
+policecar_approaching_fade_out
+flare_end
+christmas_radio_end
+emitter_lorry_idle_03
+
+- kosugi -
+
+container_drop
+emitter_car_idle_04
+
+===Framing Frame - Stage 3===
+
+pln_ff3_09 - what a flat
+pln_ff3_04 - gotta get this deal exposed fast
+pln_ff3_05 - find me his server room
+pln_ff3_07 - juicy stuff boys
+pln_ff3_10 - find that gold and we can buy one of our own
+pln_ff3_13 - we are in the wrong line of work gentlemen
+
+pln_framing_stage3_43(01-43)
+Play_pln_heli_01 (01-03)
+pln_ff3_18(01-18)
+Play_pln_spawn_01
+
+===Hoxton Breakout - Stage 1===
+
+sound_play_hoxton_04 	[_editor_name] = Random shit hoxton says while hiding in the car
+Play_pln_hb1_26 (01-23)
+Play_pln_hb1_20b
+Play_dr1_hb1_08(01-8)
+
+===Roberts Bank===
+
+Play_pln_cs1_152(01-152)
+Play_gsc_cs1_20(01-20)
+Play_csf_cs1_03(01-3)
+Play_pt2_cs1_17(01-17)
+
+===Pines (White Xmas)===
+
+Play_pln_cp1_20(01-20)
+play_pln_gen_bgst_01
+Play_vld_cp1_04
+Play_pt2_cp1_06
+
+===Kosugi (Shadow Raid)===
+
+Play_pln_ko1_25(01-25)
+Play_pln_ko1_end_01
+Play_ta_ko1_end_01
+
+Play_pln_ko1_18 - chopper isn't on flight plans
+
+--END RAINS STUFF------------------------------------------------------------------------------
