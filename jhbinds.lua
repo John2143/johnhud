@@ -26,6 +26,18 @@ jhud.binds = {
 		--[[23]] {"", "l03x_sin"}, 		--cuff yourself
 		--[[24]] {"", "r01x_sin"}, 		--Affirmative
 		--[[25]] {"", "r02a_sin"}, 		--I cant understand anything that chains says here
+		--[[26]] {"", "g22"}, 			--this drill sucks
+		--[[27]] {"", "g24"}, 			--aaaaaaaaNNNDD SCOOORE
+		--[[28]] {"", "g30"}, 			--bulldozer history
+		--[[29]] {"", "g31x_any"}, 		--shield history
+		--[[30]] {"", "g32x_any"}, 		--taser history
+		--[[31]] {"", "g33x_any"}, 		--no more cloaker
+		--[[32]] {"", "g35x_any"}, 		--that sniper got what he deserved
+		--[[33]] {"", "g41x_any"}, 		--I'M BLIND AAAAAAGh
+		--[[34]] {"", "g42x_any"}, 		--AAAAAAGH GAs
+		--[[35]] {"", "g43"}, 			--BOMB
+		--[[36]] {"", "g65"}, 			--two minutes
+		--[[37]] {"", "whistling_attention"}, 	--give me the coke and you'll get your gold
 	},
 	bainlines = {
 		--[[01]] {"", "ban_q01"..wolf, true},		--[character] is in a pickle
