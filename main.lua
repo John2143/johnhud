@@ -96,7 +96,6 @@ function jhud.rmod(name)
 end
 
 dofile 'johnhud/jhopts.lua'--REP
-dofile 'johnhud/jhbinds.lua'--REP
 dofile 'johnhud/cfg.lua'--REP
 
 jhud.cheating = jhud.options.cheat
