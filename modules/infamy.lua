@@ -1,3 +1,4 @@
+jhud.rlib("file")
 function this:setInfamy(rank)
 	if managers and managers.experience then
 --its up to you whether or not you use this: you wont receive a CHEATER tag, you won't
@@ -14,24 +15,69 @@ function this:getInfamy()
 	return jhud.undigest(managers.experience._global.rank)
 end
 
-function this:__init()
-	do return end ----------------------
-	jhud.hook("HUDManager", "update_name_label_by_peer", function(self, peer)
-		for _, data in pairs(self._hud.name_labels) do
-			if data.peer_id == peer:id() then
-				local name = data.character_name
-				if peer:level() then
-					local ply = jhud.player:getPlayerByPeerID(peer:id())
-					local experience = (peer:rank() > 0 and managers.experience:rank_string(peer:rank()) .. "-" or "") ..
-							peer:level() ..
-							((peer:id() == jhud.net:getPeerID() or ply and ply:hasJHUD()) and "j" or "")
-					name = name .. " " .. L:affix(experience)
-				end
-				data.text:set_text(utf8.to_upper(name))
-				self:align_teammate_name_label(data.panel, data.interact)
-			else
-			end
+function this:emptyTree()
+	local st = {}
+	for i,v in pairs(managers.skilltree._global.skills) do
+		st[i] = {
+			total = v.total,
+			unlocked = 0,
+		}
+	end
+	return st
+end
+
+function this:emptySSTree()
+	local ss = {}
+	local zero = jhud.digest(0)
+	for i = 1, 5 do
+		ss[i] = {points_spent = zero, unlocked = false}
+	end
+	return ss
+end
+function this:emptySwitch()
+	return {
+		points = jhud.digest(120),
+		skills = self:emptyTree(),
+		unlocked = true,
+		specialization = jhud.digest(6), --idk what this is
+		trees = self:emptySSTree(),
+	}
+end
+function this:newSkillTree(name)
+	local skilldata = self:emptySwitch()
+	jhud.save("skilltreedata/"..name, skilldata)
+	self:initSkillTree(name, skilldata)
+
+	table.insert(self.skilltrees, name)
+	jhud.save("skilltrees", self.skilltrees)
+end
+function this:removeSkillTree(name)
+	local sw = managers.skilltree._global.skill_switches
+	for i,v in pairs(sw) do
+		if i > self.lastRealTree then
+			sw[i] = nil
 		end
-		return true
-	end)
+	end
+	table.delete(self.skilltrees, name)
+	jhud.save("skilltrees", self.skilltrees)
+
+	self:doInitSkilltrees()
+end
+function this:initSkillTree(name, data)
+	local skilldata = data or jhud.load("skilltreedata/"..name)
+
+	managers.skilltree._global.skill_switches[self.nextskilltree] = skilldata
+	self.nextskilltree = self.nextskilltree + 1
+end
+function this:doInitSkilltrees()
+	for i,v in ipairs(self.skilltrees) do
+		self:initSkillTree(i)
+	end
+end
+function this:__init()
+	self.lastRealTree = #managers.skilltree._global.skill_switches
+	self.nextskilltree = self.lastRealTree + 1 --the next skilltree
+
+	self.skilltrees = jhud.load('skilltrees')
+	self:doInitSkilltrees()
 end
