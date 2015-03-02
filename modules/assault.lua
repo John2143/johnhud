@@ -208,11 +208,9 @@ function this:__cleanup(carry)
 	c.pagersActive = self.pagersActive
 	c.textpanel:text("")
 	c.callpanel:text("")
-	_("Cleanup called")
 end
 function this:__init(carry)
 	self.uncool = 0
-	if carry.assaultData then _("Cleanup active") else _("NO CLEANUP") end
 	--Number of pagers used
 	--This number includes the number of pagers that will need to be used
 	--ie: pagercop dies during ecm, this number get added to anyway

@@ -17,7 +17,7 @@ end
 
 function this:emptyTree()
 	local st = {}
-	for i,v in pairs(managers.skilltree._global.skills) do
+	for i,v in pairs(self.st.skills) do
 		st[i] = {
 			total = v.total,
 			unlocked = 0,
@@ -45,39 +45,87 @@ function this:emptySwitch()
 end
 function this:newSkillTree(name)
 	local skilldata = self:emptySwitch()
-	jhud.save("skilltreedata/"..name, skilldata)
+	self:saveTree(name, skilldata, true)
 	self:initSkillTree(name, skilldata)
 
 	table.insert(self.skilltrees, name)
-	jhud.save("skilltrees", self.skilltrees)
+	self:saveTrees()
 end
 function this:removeSkillTree(name)
-	local sw = managers.skilltree._global.skill_switches
+	table.delete(self.skilltrees, name)
+	self:saveTrees()
+
+	self:doInitSkilltrees()
+end
+function this:saveSkillTree()
+	local ss = self.st.selected_skill_switch
+	local jhudtree = ss - self.lastRealTree
+	if jhudtree < 1 then return end --overkill implemented tree
+	local treename = self.skilltrees[jhudtree]
+
+	self:saveTree(treename, ss)
+end
+function this:initSkillTree(name, data)
+	local skilldata = data or self:loadTree(name)
+
+	self.st.skill_switches[self.nextskilltree] = skilldata
+	managers.skilltree:set_skill_switch_name(self.nextskilltree, name:upper())
+	self.nextskilltree = self.nextskilltree + 1
+end
+function this:doInitSkilltrees()
+	local sw = self.st.skill_switches
 	for i,v in pairs(sw) do
 		if i > self.lastRealTree then
 			sw[i] = nil
 		end
 	end
-	table.delete(self.skilltrees, name)
-	jhud.save("skilltrees", self.skilltrees)
-
-	self:doInitSkilltrees()
-end
-function this:initSkillTree(name, data)
-	local skilldata = data or jhud.load("skilltreedata/"..name)
-
-	managers.skilltree._global.skill_switches[self.nextskilltree] = skilldata
-	self.nextskilltree = self.nextskilltree + 1
-end
-function this:doInitSkilltrees()
 	for i,v in ipairs(self.skilltrees) do
-		self:initSkillTree(i)
+		self:initSkillTree(v)
 	end
 end
-function this:__init()
-	self.lastRealTree = #managers.skilltree._global.skill_switches
-	self.nextskilltree = self.lastRealTree + 1 --the next skilltree
+function this:renameSkillTree(id, new)
+	local ss = id - self.lastRealTree
+	local old = self.skilltrees[ss]
+	self.skilltrees[ss] = new
 
+	self:saveTrees()
+	self:saveTree(new, id)
+end
+local path = "skilltree_"
+function this:loadTree(name)
+	return jhud.load(path..name)
+end
+function this:saveTree(name, id, notID)
+	if notID then
+		jhud.save(path..name, id)
+	else
+		jhud.save(path..name, self.st.skill_switches[id])
+	end
+end
+function this:saveTrees() --recycling helps :)
+	jhud.save("skilltrees", self.skilltrees)
+end
+function this:numTrees()
+	return #self.skilltrees
+end
+function this:__init(carry)
+	if not managers.skilltree then return end
+	self.st = managers.skilltree._global
+	self.lastRealTree = 5
+	self.nextskilltree = self.lastRealTree + 1 --the next skilltree
 	self.skilltrees = jhud.load('skilltrees')
 	self:doInitSkilltrees()
+	jhud.hook("SkillTreeGui", "_stop_rename_skill_switch", function(stg)
+		local id = self.st.selected_skill_switch
+		if id > self.lastRealTree then
+			self:renameSkillTree(id, stg._renaming_skill_switch)
+		end
+	end)
+	jhud.hook("SkillTreeManager", "save", function(stm, data)
+		for i,v in pairs(self.st.skill_switches) do
+			if i > self.lastRealTree then
+				self:saveTree(self.skilltrees[i - self.lastRealTree], i)
+			end
+		end
+	end)
 end
