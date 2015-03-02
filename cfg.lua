@@ -6,16 +6,8 @@
 	EXAMPLES:
 	o.m.assault.color.anticipation = Color('FF0000')
 	o.m._.showload = false
-
-	EXAMPLE VOICE BIND:
-    b.voice[3][1] = "k"
-               ^this must always be 1
-            ^this is the command number from jhbinds(the number in brackets)
-         ^this is what you want to bind
-
 ]]--
 local o = jhud.options
-local b = jhud.binds
 
 
 o.language = "EN"
@@ -38,4 +30,15 @@ jhud.addCheatModule{
 }
 
 
-jhud.options = o --DO NOT REMOVE THIS LINE
+--Binds can be found in binds.txt
+local chains, dallas, wolf, hoxton, clover, houston, wick, dragan =	"b", "a", "c", "d", "n", "l", "m", ""
+
+jhud.binds = {
+	voice = {
+		n = "f36x_any",
+		l = "s07x_sin",
+	},
+	bainlines = {
+		k = "ban_q01"..wolf,
+	},
+}

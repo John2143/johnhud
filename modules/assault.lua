@@ -1,3 +1,5 @@
+jhud.wmod("chat")
+
 function this:getPagersUsed()
 	return managers.groupai and (managers.groupai:state():get_nr_successful_alarm_pager_bluffs()) or -1
 end
@@ -196,19 +198,32 @@ function this:__igupdate(t, dt)
 	self:updateTag(t, dt)
 end
 
-function this:__init()
-	-- jhud.debug = true
+function this:__cleanup(carry)
+	carry.assaultData = {}
+	local c = carry.assaultData
+	c.textpanel = self.textpanel
+	c.callpanel = self.callpanel
+	c.pagersNR = self.pagersNR or 0
+	c.deadCopsWithPagers = self.deadCopsWithPagers
+	c.pagersActive = self.pagersActive
+	c.textpanel:text("")
+	c.callpanel:text("")
+	_("Cleanup called")
+end
+function this:__init(carry)
+	self.uncool = 0
+	if carry.assaultData then _("Cleanup active") else _("NO CLEANUP") end
 	--Number of pagers used
 	--This number includes the number of pagers that will need to be used
 	--ie: pagercop dies during ecm, this number get added to anyway
-	self.uncool = 0
-	self.pagersNR = 0
+	local old = carry.assaultData or {}
+	self.pagersNR = old.pagersNR or 0
 	self.uncoolstanding = 0
 	self.heistStatus = "none"
 	self.lang = L:new("assault")
 	if jhud.net:isServer() then
-		self.pagersActive = 0 --Number of pagers that are being answered or need to be answered
-		self.deadCopsWithPagers = {}
+		self.pagersActive = old.pagersActive or 0--Number of pagers that are being answered or need to be answered
+		self.deadCopsWithPagers = old.deadCopsWithPagers or {}
 		jhud.hook("CopBrain", "begin_alarm_pager", function(cb, reset)
 			if not table.hasValue(self.deadCopsWithPagers, cb) then
 				table.insert(self.deadCopsWithPagers, cb)

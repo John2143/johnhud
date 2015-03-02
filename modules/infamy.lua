@@ -6,6 +6,7 @@ function this:setInfamy(rank)
 --This does permanantly save to your playerfile, so its up to you to keep track.
 --Current max infamy: 5
 --Current hard coded max: 7
+--Hype train hype: 25
 		managers.experience._global.rank = jhud.digest(rank)
 	end
 end

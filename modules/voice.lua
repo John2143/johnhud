@@ -21,19 +21,20 @@ this.internalnames = {
 	houston = 2,
 	wick = 6,
 }
+
 function this:__init()
-	local _self = self
+	if not jhud.binds then return end
 	for i,v in pairs(jhud.binds.voice) do
-		if v[1] then
-			jhud.bind(v[1], function()
-				_self:voiceline(v[2])
+		if i ~= "" then
+			jhud.bind(i, function()
+				self:voiceline(v)
 			end)
 		end
 	end
 	for i,v in pairs(jhud.binds.bainlines) do
-		if v[1] then
-			jhud.bind(v[1], function()
-				_self:bainline(v[2], v[3])
+		if i ~= "" then
+			jhud.bind(i, function()
+				self:bainline(v, true)
 			end)
 		end
 	end

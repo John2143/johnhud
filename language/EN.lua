@@ -37,6 +37,8 @@ LOADLANGUAGE = function() return {
 		writeunpure = "Creating a unpure version file (full data)",
 		writepure = "Creating a pure version file (version only)",
 		missingarguments = "This command needs additional arguments",
+		ignoring = "Ignoring ",
+		unignore = "You no longer ignore %s",
 	},
 	preplanning = {
 		cost = "Cost (%s)",
@@ -44,5 +46,7 @@ LOADLANGUAGE = function() return {
 		num = "# of plans (%s)",
 		other = "Placed objects",
 		notfound = "The plan '%s' was not found",
+		toocostly = "You do not have enough favors to use this plan",
+		verytoocostly = "This map does not have enough favors to use this plan",
 	}
 } end

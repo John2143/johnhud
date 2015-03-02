@@ -1,3 +1,4 @@
+jhud.wmod("player")
 setmetatable(jhud.chat, {
 	__call = function(_,name,message,color,icon)
 		if not message then
@@ -83,7 +84,6 @@ function this:__init()
 	end)
 	self.commands = {}
 	self:addCommand("help", self.showHelp)
-	self:addCommand("test", function(chat, ...) chat("IN->" or {}, table.concat({...}, ",")) end)
 	if self.config.showemotes then
 		jhud.hook("ChatGui", "receive_message", self.chatEmotes)
 		jhud.hook("HUDChat", "receive_message", self.chatEmotes)
@@ -91,6 +91,10 @@ function this:__init()
 	if self.config.showinfamy then
 		jhud.hook("ChatGui", "receive_message", self.chatInfamy)
 		jhud.hook("HUDChat", "receive_message", self.chatInfamy)
+	end
+	if jhud.player then
+		jhud.hook("ChatGui", "receive_message", self.ignore)
+		jhud.hook("HUDChat", "receive_message", self.ignore)
 	end
 end
 
@@ -102,12 +106,21 @@ this.chatEmotes = function(cg, name, message, ...)
 end
 
 this.chatInfamy = function(cg, name, message, color, icon)
+	if not jhud.player then return end
 	local ply = jhud.player:playerByColor(color)
 	if not ply then return end
 	if ply:name() ~= name then return end
 	return{
 		[2] = ply:infamystr().." "..name
 	}
+end
+
+this.ignore = function(cg, name, message, color, icon)
+	local ply = jhud.player:playerByColor(color)
+	if not ply then return end
+	if ply.ignore then
+		return true
+	end
 end
 
 function this:showHelp(sub)

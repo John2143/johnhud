@@ -1,3 +1,5 @@
+jhud.wmod("chat")
+jhud.rlib("file")
 setmetatable(this,{
 	__call = function(_, key, callback)
 		if not Idstring then return end
@@ -19,8 +21,6 @@ end
 function this:clearBinds()
 	self._binds = {}
 end
-local panel
-local textpanel
 function this:__update(t, dt)
 	if not (
 		(managers.menu_component._blackmarket_gui and managers.menu_component._blackmarket_gui._renaming_item) or

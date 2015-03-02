@@ -1,3 +1,5 @@
+jhud.rmod("chat")
+jhud.rlib("file")
 function this:getCurrentPlan(plan)
 	local id = jhud.net:getPeerID()
 	local vote = managers.preplanning._players_votes[id]
@@ -66,14 +68,15 @@ function this:parsePlan(selfonly)
 	return preplan
 end
 
-function this:enactPlan(plan, dovotes, doother)
+function this:enactPlan(plan, force, dovotes, doother)
 	if not plan then return true end
 	local favorscost = 0
 	if doother then favorscost = favorscost + plan.other.favors end
 	if dovotes then favorscost = favorscost + plan.votes.favors end
-
-	if self:getFavors() < favorscost then return "verytoocostly" end
-	if self:getFavors(true) < favorscost then return "toocostly" end
+	if not force then
+		if self:getFavors() < favorscost then return "verytoocostly" end
+		if self:getFavors(true) < favorscost then return "toocostly" end
+	end
 
 	if doother then
 		for i,v in ipairs(plan.other) do
@@ -86,6 +89,17 @@ function this:enactPlan(plan, dovotes, doother)
 		end
 	end
 	return false
+end
+
+function this:tryPlan(chat, p)
+	local err = self:enactPlan(p.plan, p.force, p.dovotes, p.doother)
+	if err then
+		chat("DOPLAN", self.lang(err), chat.config.failed)
+		return false
+	else
+		self:chatPlan(chat, p.name, p.plan, true, "DO")
+		return true
+	end
 end
 
 function this:currentHeist(refresh)
@@ -123,8 +137,13 @@ function this:chatPlan(chat, name, v, concise, pre)
 	end
 end
 
-function this:__init()
-	if not (managers.preplanning and jhud.chat) then return end
+function this:__cleanup(carry)
+	carry.lastPreplanningPlan = self.lastplan
+end
+
+function this:__init(carry)
+	if not (managers.preplanning and jhud.chat and self:currentHeist()) then return end
+	self.lastplan = carry.lastPreplanningPlan
 	self.lang = L:new("preplanning")
 	self:loadPlans()
 	jhud.chat:addCommand("prsv", function(chat, ...)
@@ -143,7 +162,7 @@ function this:__init()
 	end)
 	jhud.chat:addCommand("prex", function(chat, ...)
 		local name, printOnly
-		local dovotes, doother = true, true
+		local dovotes, doother, force = true, true, false
 		for i,v in pairs{...} do
 			if v == "-v" or v == "--vote-only" then
 				doother = false
@@ -151,6 +170,8 @@ function this:__init()
 				dovotes = false
 			elseif v == "-p" or v == "--print" then
 				printOnly = true
+			elseif v == "-f" or v == "--force" then
+				force = true
 			else
 				name = v
 			end
@@ -161,13 +182,24 @@ function this:__init()
 			if printOnly then
 				self:chatPlan(chat, name, plan, false, "P")
 			else
-				self:enactPlan(plan, dovotes, doother)
-				self:chatPlan(chat, name, plan, true, "DO")
+				local planobj = {
+					name = name,
+					plan = plan,
+					force = force,
+					dovotes = dovotes,
+					doother = doother
+				}
+				self.lastplan = planobj
+				self:tryPlan(chat, planobj)
 			end
 		else
 			for i,v in pairs(self.savedPlans) do
 				self:chatPlan(chat, i, v, true)
 			end
 		end
+	end)
+	jhud.chat:addCommand("l", function(chat)
+		if not self.lastplan then chat("PLAN", self.lang("norecent"), chat.config.failed) return end
+		self:tryPlan(chat, self.lastplan)
 	end)
 end
