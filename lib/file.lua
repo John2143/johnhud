@@ -1,5 +1,5 @@
-local split = ",\n"
-local splitnoval = "\n"
+local split = ","
+local splitnoval = ""
 local val = "="
 local tstart = "{"
 local tend = "}"

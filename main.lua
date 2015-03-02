@@ -132,7 +132,7 @@ for i,v in pairs(jhud.requiredLibraries) do
 end
 for i,v in pairs(jhud.options.modules) do
 	if jhud[v].__init then
-		local suc, err = pcall(jhud[v].__init, jhud[v], jhud.carry)
+		local suc, err = pcall(jhud[v].__init, jhud[v], jhud.carry or {})
 		if err then jhud.log(err) end
 	end
 end

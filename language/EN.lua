@@ -46,5 +46,7 @@ LOADLANGUAGE = function() return {
 		num = "# of plans (%s)",
 		other = "Placed objects",
 		notfound = "The plan '%s' was not found",
+		toocostly = "You do not have enough favors to use this plan",
+		verytoocostly = "This map does not have enough favors to use this plan",
 	}
 } end

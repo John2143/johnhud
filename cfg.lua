@@ -36,6 +36,7 @@ local chains, dallas, wolf, hoxton, clover, houston, wick, dragan =	"b", "a", "c
 jhud.binds = {
 	voice = {
 		n = "f36x_any",
+		l = "s07x_sin",
 	},
 	bainlines = {
 		k = "ban_q01"..wolf,
