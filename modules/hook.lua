@@ -20,9 +20,11 @@ function this:call(fname, ...)
 	return ret
 end
 function this:restore(iclass, ifunc)
-	jhud.dlog("Restored ", iclass, ifunc)
-	_G[iclass][ifunc] = self.func[iclass][ifunc]
-	self.fhooks[iclass][ifunc] = nil
+	if self.func[iclass][ifunc] then
+		jhud.dlog("Restored ", iclass, ifunc)
+		_G[iclass][ifunc] = self.func[iclass][ifunc]
+		self.fhooks[iclass][ifunc] = nil
+	end
 end
 function this:restoreAll()
 	for i,v in pairs(self.fhooks or {}) do

@@ -45,6 +45,8 @@ function this:emptySwitch()
 end
 function this:newSkillTree(name)
 	local skilldata = self:emptySwitch()
+	name = name or "Unnamed"
+	skilldata.name = name
 	self:saveTree(name, skilldata, true)
 	self:initSkillTree(name, skilldata)
 
@@ -69,7 +71,7 @@ function this:initSkillTree(name, data)
 	local skilldata = data or self:loadTree(name)
 
 	self.st.skill_switches[self.nextskilltree] = skilldata
-	managers.skilltree:set_skill_switch_name(self.nextskilltree, name:upper())
+	--managers.skilltree:set_skill_switch_name(self.nextskilltree, name:upper())
 	self.nextskilltree = self.nextskilltree + 1
 end
 function this:doInitSkilltrees()
@@ -108,6 +110,17 @@ end
 function this:numTrees()
 	return #self.skilltrees
 end
+function this:createSkilltreeButton()
+	local stg = managers.menu_component._skilltree_gui
+	local lastpanel = stg._skill_tree_panel:child("switch_skills_button")
+	local pan = stg._panel:text{
+		name = "jhud_newskilltree",
+		text = L("skilltree", "New skill tree"),
+		font_size = lastpanel:font_size(),
+	}
+	pan:set_top(lastpanel:top())
+	pan:set_left(lastpanel:left())
+end
 function this:__init(carry)
 	if not managers.skilltree then return end
 	self.st = managers.skilltree._global
@@ -128,4 +141,13 @@ function this:__init(carry)
 			end
 		end
 	end)
+	--[[ Will implement later
+	if managers.menu_component then
+		self:createSkilltreeButton()
+	else
+		jhud.hook("SkillTreeGui", "_setup", function()
+			self:createSkilltreeButton()
+		end, jhud.hook.POSTHOOK)
+	end
+	]]
 end
