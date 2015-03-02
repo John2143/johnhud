@@ -16,7 +16,7 @@ jhud.options= {
 		"player",
 		"autoupdate",
 		"preplanning",
-		"mutate",
+--		"mutate",
 	},
 	cheat = false,		-- Enable cheater modules
 	cheaterModules = {
