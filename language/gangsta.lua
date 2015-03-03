@@ -16,7 +16,7 @@ LOADLANGUAGE = function() return {
 		start = "john perfection started",
 		trans_error = "lost in translation",
 		affix_error = "-ayyy",
-		cheater = "shit why don't you use pirate perfection",
+		cheater = "shit why don't you just use pirate perfection",
 		newver = "gimme dat update bro (%s -> %s). do '/update' & get me the hot new code",
 		nonewver = "nigga i aint tell you to update (version %s)",
 		downloading = "git fetch",
@@ -44,5 +44,14 @@ LOADLANGUAGE = function() return {
 		num = "money lost due to elevator trick (%s)",
 		other = "good shit",
 		notfound = "no action '%s'",
+	}
+	skilltree = {
+		newtree = "you have a black belt in this?",
+		none = "you ain't got the skillz man",
+		multi = "you got too much skillz",
+		new = "more badassery",
+		notjhud = "i'm not its dad i can't do anything",
+		notempty = "you gotta empty it do -f if you really want to son",
+		removed = "wasted %s",
 	}
 } end
