@@ -39,7 +39,7 @@ function this:emptySwitch()
 		points = jhud.digest(120),
 		skills = self:emptyTree(),
 		unlocked = true,
-		specialization = jhud.digest(6), --idk what this is
+		specialization = jhud.digest(4), --perk deck default is 4 -> rogue
 		trees = self:emptySSTree(),
 	}
 end
@@ -115,7 +115,7 @@ function this:createSkilltreeButton()
 	local lastpanel = stg._skill_tree_panel:child("switch_skills_button")
 	local pan = stg._panel:text{
 		name = "jhud_newskilltree",
-		text = L("skilltree", "New skill tree"),
+		text = self.lang("newtree"),
 		font_size = lastpanel:font_size(),
 	}
 	pan:set_top(lastpanel:top())
@@ -150,4 +150,56 @@ function this:__init(carry)
 		end, jhud.hook.POSTHOOK)
 	end
 	]]
+	self.lang = L:new("skilltree")
+	if jhud.chat then
+		jhud.chat:addCommand("skillset", function(chat, ...)
+			local isnew, name, delete, force
+			for i,v in pairs{...} do
+				if v == "-n" or v == "--new" then
+					isnew = true
+				elseif v == "-d" or v == "--delete" then
+					delete =  true
+				elseif v == "-f" or v == "--force" then
+					force = true
+				else
+					name = v
+				end
+			end
+
+			if isnew then
+				self:newSkillTree(name)
+				chat("SKSET", self.lang("new"), chat.config.spare1)
+			else
+				local setid = tonumber(name)
+				if not setid then
+					for i,v in pairs(self.st.skill_switch) do
+						if v.name:lower():find(name) then
+							if setid then
+								chat("SKSET", self.lang("multi"), chat.config.failed)
+								return
+							else
+								setid = i
+							end
+						end
+					end
+				end
+				if not setid then chat("SKSET", self.lang("none"), chat.config.failed) end
+				if delete then
+					if setid > self.lastRealTree then
+						if jhud.undigest(self.st.skill_switches[setid].points) < 120 and not force then
+							chat("SKSET", self.lang("notempty"), chat.config.failed)
+						else
+							local treename = self.skilltrees[setid - self.lastRealTree]
+							self:removeSkillTree(treename)
+							chat("SKSET", self.lang("removed"):format(treename), chat.config.spare1)
+						end
+					else
+						chat("SKSET", self.lang("notjhud"), chat.config.failed)
+					end
+				else
+					managers.skilltree:switch_skills(setid)
+				end
+			end
+		end)
+	end
 end
