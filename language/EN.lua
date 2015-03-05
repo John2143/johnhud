@@ -52,10 +52,11 @@ LOADLANGUAGE = function() return {
 	skilltree = {
 		newtree = "New skill tree",
 		none = "There is no skill tree with this name",
-		multi = "There are multiple skilltrees with this name",
+		multi = "There are multiple skilltrees with this name (%s)",
 		new = "Created a new skilltree",
 		notjhud = "You cannot remove a tree that was not created by jhud",
 		notempty = "You can only remove empty skilltrees. Use -f to force.",
 		removed = "Successfully removed %s",
+		changed = "Changed skill set to %s",
 	}
 } end

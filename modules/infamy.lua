@@ -81,8 +81,12 @@ function this:doInitSkilltrees()
 			sw[i] = nil
 		end
 	end
+	self.nextskilltree = self.lastRealTree + 1 --the next skilltree
 	for i,v in ipairs(self.skilltrees) do
 		self:initSkillTree(v)
+	end
+	if self.st.selected_skill_switch >= self.nextskilltree then
+		self.st.selected_skill_switch = 0
 	end
 end
 function this:renameSkillTree(id, new)
@@ -107,8 +111,14 @@ end
 function this:saveTrees() --recycling helps :)
 	jhud.save("skilltrees", self.skilltrees)
 end
-function this:numTrees()
+function this:numJHUDTrees()
 	return #self.skilltrees
+end
+function this:treeIndex(id)
+	return id - self.lastRealTree
+end
+function this:isJHUDTree(id)
+	return self:treeIndex() > 0
 end
 function this:createSkilltreeButton()
 	local stg = managers.menu_component._skilltree_gui
@@ -125,19 +135,18 @@ function this:__init(carry)
 	if not managers.skilltree then return end
 	self.st = managers.skilltree._global
 	self.lastRealTree = 5
-	self.nextskilltree = self.lastRealTree + 1 --the next skilltree
 	self.skilltrees = jhud.load('skilltrees')
 	self:doInitSkilltrees()
 	jhud.hook("SkillTreeGui", "_stop_rename_skill_switch", function(stg)
 		local id = self.st.selected_skill_switch
-		if id > self.lastRealTree then
+		if self:isJHUDTree(id) then
 			self:renameSkillTree(id, stg._renaming_skill_switch)
 		end
 	end)
 	jhud.hook("SkillTreeManager", "save", function(stm, data)
 		for i,v in pairs(self.st.skill_switches) do
-			if i > self.lastRealTree then
-				self:saveTree(self.skilltrees[i - self.lastRealTree], i)
+			if self:isJHUDTree(i) then
+				self:saveTree(self.skilltrees[self:treeIndex(i)], i)
 			end
 		end
 	end)
@@ -172,24 +181,26 @@ function this:__init(carry)
 			else
 				local setid = tonumber(name)
 				if not setid then
-					for i,v in pairs(self.st.skill_switch) do
-						if v.name:lower():find(name) then
-							if setid then
-								chat("SKSET", self.lang("multi"), chat.config.failed)
-								return
-							else
-								setid = i
-							end
+					if not name then return chat.MISSING_ARGUMENTS end
+					local multi = {}
+					for i,v in pairs(self.st.skill_switches) do
+						if v.name:lower():find(name:lower()) then
+							setid = i
+							table.insert(multi, v.name)
 						end
+					end
+					if multi[2] then
+						chat("SKSET", self.lang("multi"):format(table.concat(multi, ", ")), chat.config.failed)
+						return
 					end
 				end
 				if not setid then chat("SKSET", self.lang("none"), chat.config.failed) end
 				if delete then
-					if setid > self.lastRealTree then
+					if self:isJHUDTree(setid) then
 						if jhud.undigest(self.st.skill_switches[setid].points) < 120 and not force then
 							chat("SKSET", self.lang("notempty"), chat.config.failed)
 						else
-							local treename = self.skilltrees[setid - self.lastRealTree]
+							local treename = self.skilltrees[self:treeIndex(setid)]
 							self:removeSkillTree(treename)
 							chat("SKSET", self.lang("removed"):format(treename), chat.config.spare1)
 						end
@@ -197,6 +208,7 @@ function this:__init(carry)
 						chat("SKSET", self.lang("notjhud"), chat.config.failed)
 					end
 				else
+					chat("SKSET", self.lang("changed"):format(managers.skilltree:get_skill_switch_name(setid)), chat.config.spare1)
 					managers.skilltree:switch_skills(setid)
 				end
 			end
