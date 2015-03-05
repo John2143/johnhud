@@ -58,5 +58,6 @@ LOADLANGUAGE = function() return {
 		notempty = "You can only remove empty skilltrees. Use -f to force.",
 		removed = "Successfully removed %s",
 		changed = "Changed skill set to %s",
+		betweendays = "You can not switch skillsets when you are between days",
 	}
 } end

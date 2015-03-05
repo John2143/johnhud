@@ -31,6 +31,7 @@
  - /kickb: players | bans a player
  - /csay: text | broadcasts text akin to casing mode warning
  - /csay2: text | broadcasts text in a box, vertical bar starts a new line
+ - /restart or /r: Restart the current heist instantly WARNING: IT DEDUCTS OFFSHORE MONEY IF IT IS A PROJOB
 
 
 ### Module: autoupdate.lua
@@ -45,7 +46,7 @@
    - --xcopy-only,-c | Only copy over the current version assuming there exists a folder in update/ called {project}-{branch}
 
 ### Module: preplanning.lua
- - /l: uses last plan used including flags
+ - /l or /last: uses last plan used including flags
  - /prex:
    - plan name | executes saved plan with name
    - --vote-only,-v | executes votes from a plan only

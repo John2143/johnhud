@@ -118,7 +118,7 @@ function this:treeIndex(id)
 	return id - self.lastRealTree
 end
 function this:isJHUDTree(id)
-	return self:treeIndex() > 0
+	return self:treeIndex(id) > 0
 end
 function this:createSkilltreeButton()
 	local stg = managers.menu_component._skilltree_gui
@@ -208,8 +208,16 @@ function this:__init(carry)
 						chat("SKSET", self.lang("notjhud"), chat.config.failed)
 					end
 				else
-					chat("SKSET", self.lang("changed"):format(managers.skilltree:get_skill_switch_name(setid)), chat.config.spare1)
-					managers.skilltree:switch_skills(setid)
+					if managers.job and
+						managers.job._global.current_job and
+						managers.job._global.current_job.last_completed_stage ~= 0
+					then
+
+						chat("SKSET", self.lang("betweendays"), chat.config.failed)
+					else
+						chat("SKSET", self.lang("changed"):format(managers.skilltree:get_skill_switch_name(setid)), chat.config.spare1)
+						managers.skilltree:switch_skills(setid)
+					end
 				end
 			end
 		end)

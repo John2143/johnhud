@@ -48,12 +48,28 @@ function this:docsay2(top, bottom)
 		event = {}
 	}
 end
+function this:restart(chat, ...)
+	if not jhud.net:isServer() then return chat.NOT_HOST end
+	if not managers.hud then return chat.NEED_HEIST end --Use hud to check if you are in game, could also use equipment selections
+
+	if managers.job:is_current_job_professional() then
+		local g = managers.job._global.current_job
+		g.current_stage = 1
+		local diff = tweak_data:difficulty_to_index(Global.game_settings.difficulty)
+		local offcost = managers.money:get_cost_of_premium_contract(g.job_id, diff or 2)
+		managers.money:deduct_from_offshore(offcost)
+		jhud.dlog(offcost, "paid for restart")
+	end
+	managers.game_play_central:restart_the_game()
+end
 
 function this:__init()
 	jhud.chat:addCommand("kick", function(...) return self:kick(false, ...) end)
 	jhud.chat:addCommand("kickb", function(...) return self:kick(true, ...) end)
 	jhud.chat:addCommand("csay", function(...) return self:csay(...) end)
 	jhud.chat:addCommand("csay2", function(...) return self:csay2(...) end)
+	jhud.chat:addCommand("restart", function(...) return self:restart(...) end)
+	jhud.chat:alias("r", "restart")
 
 	jhud.net:hook("jhud.admin.csay", function(data)
 		self:docsay(data)

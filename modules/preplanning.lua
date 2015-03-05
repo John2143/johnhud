@@ -198,8 +198,9 @@ function this:__init(carry)
 			end
 		end
 	end)
-	jhud.chat:addCommand("l", function(chat)
+	jhud.chat:addCommand("last", function(chat)
 		if not self.lastplan then chat("PLAN", self.lang("norecent"), chat.config.failed) return end
 		self:tryPlan(chat, self.lastplan)
 	end)
+	jhud.chat:alias("l", "last")
 end

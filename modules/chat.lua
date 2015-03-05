@@ -154,3 +154,6 @@ end
 function this:addCommand(name, func)
 	self.commands[name] = func
 end
+function this:alias(name, o)
+	self.commands[name] = self.commands[o] --I think functions are pointers --TODO check
+end
