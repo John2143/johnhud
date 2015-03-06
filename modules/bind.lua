@@ -21,6 +21,9 @@ end
 function this:clearBinds()
 	self._binds = {}
 end
+function this:__init()
+	self:clearBinds()
+end
 function this:__update(t, dt)
 	if not (
 		(managers.menu_component._blackmarket_gui and managers.menu_component._blackmarket_gui._renaming_item) or

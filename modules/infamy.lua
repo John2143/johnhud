@@ -14,6 +14,35 @@ end
 function this:getInfamy()
 	return jhud.undigest(managers.experience._global.rank)
 end
+function this:oldInfamy(rank)
+	rank = rank or 0
+	local values = {
+		{1, "I"},
+		{4, "IV"},
+		{5, "V"},
+		{9, "IX"},
+		{10, "X"},
+		{40, "XL"},
+		{50, "L"},
+		{90, "LC"},
+		{100, "C"},
+	}
+	local retstr = ''
+	for i = #values, 1, -1 do
+		if rank == 0 then break end --not necessary but may be faster
+		local num = values[i][1]
+		while(rank >= num) do
+			retstr = retstr..values[i][2]
+			rank = rank - num
+		end
+	end
+	return retstr
+end
+function this:restoreInfamy()
+	jhud.hook("ExperienceManager", "rank_string", function(em, rank)
+		return self:oldInfamy(rank)
+	end, jhud.hook.OVERRIDE)
+end
 
 function this:emptyTree()
 	local st = {}
@@ -159,6 +188,9 @@ function this:__init(carry)
 		end, jhud.hook.POSTHOOK)
 	end
 	]]
+	if self.config.useRoman then
+		self:restoreInfamy()
+	end
 	self.lang = L:new("skilltree")
 	if jhud.chat then
 		jhud.chat:addCommand("skillset", function(chat, ...)

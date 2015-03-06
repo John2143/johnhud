@@ -99,6 +99,9 @@ jhud.options= {
 			spare2	= Color("3377dd"),
 			spare3	= Color("dd7733"),
 			failed	= Color("ff3333"),
+		},
+		infamy = {
+			useRoman = false --Use roman numerals in the rank strings like before infamy2
 		}
 	}
 }

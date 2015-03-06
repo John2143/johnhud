@@ -24,11 +24,11 @@ function this:__update(t, dt)
 	if not (managers and managers.groupai and managers.groupai:state()) then return end
 	--This relies on the fact that you can
 	--never return to whisper after leaving
-	if not lastWhisper then return end 
+	if not lastWhisper then return end
 	self.shd = self.shd or managers.groupai:state()._suspicion_hud_data
 	if not self.shd then return end
 
-	if not self.panel then 
+	if not self.panel then
 		local h = self.config.num*textheight
 		jhud.dlog("No panels")
 		self.panel = jhud.createPanel()
@@ -67,7 +67,7 @@ function this:__update(t, dt)
 			end
 		end
 		for i = 1, 5 do
-			if suspicionAmount[i] then 
+			if suspicionAmount[i] then
 				self.textpanels[i]:set_text(pct(suspicionAmount[i]).."%")
 				self.textpanels[i]:set_color(math.lerp(
 					Color(0, .8, .8),
