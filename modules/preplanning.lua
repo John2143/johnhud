@@ -115,7 +115,9 @@ function this:currentHeist(refresh)
 end
 
 function this:savePlan(name, plan)
-	self.savedPlans[name] = plan
+	if name and plan then
+		self.savedPlans[name] = plan
+	end
 	jhud.save("pp/"..self:currentHeist(), self.savedPlans)
 end
 
@@ -137,13 +139,8 @@ function this:chatPlan(chat, name, v, concise, pre)
 	end
 end
 
-function this:__cleanup(carry)
-	carry.lastPreplanningPlan = self.lastplan
-end
-
 function this:__init(carry)
 	if not (managers.preplanning and jhud.chat and self:currentHeist()) then return end
-	self.lastplan = carry.lastPreplanningPlan
 	self.lang = L:new("preplanning")
 	self:loadPlans()
 	jhud.chat:addCommand("prsv", function(chat, ...)
@@ -156,6 +153,7 @@ function this:__init(carry)
 			end
 		end
 		if not name then return chat.MISSING_ARGUMENTS end
+		if name == "__lastplan" then return chat("no") end
 		local plan = self:parsePlan(selfonly)
 		self:savePlan(name, plan)
 		self:chatPlan(chat, name, plan, false)
@@ -189,7 +187,8 @@ function this:__init(carry)
 					dovotes = dovotes,
 					doother = doother
 				}
-				self.lastplan = planobj
+				self.savedPlans.__lastplan = planobj --TODO mabye not save a plan copy and instead have a reference of some kind (proboably not)
+				self:savePlan()
 				self:tryPlan(chat, planobj)
 			end
 		else
@@ -199,8 +198,8 @@ function this:__init(carry)
 		end
 	end)
 	jhud.chat:addCommand("last", function(chat)
-		if not self.lastplan then chat("PLAN", self.lang("norecent"), chat.config.failed) return end
-		self:tryPlan(chat, self.lastplan)
+		if not self.savedPlans.__lastplan then chat("PLAN", self.lang("norecent"), chat.config.failed) return end
+		self:tryPlan(chat, self.savedPlans.__lastplan)
 	end)
 	jhud.chat:alias("l", "last")
 end

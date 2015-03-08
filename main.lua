@@ -77,6 +77,7 @@ end
 function jhud.callModuleMethod(method, ...)
 	for i,v in pairs(jhud) do
 		if type(v) == "table" and type(v[method]) == "function" then
+			if method == "__init" then _("INITING ", i) end
 			local suc, err = pcall(v[method], v, ...)
 			if not suc then jhud.log("ERROR @", method, err) end
 		end
@@ -139,7 +140,12 @@ for i,v in pairs(jhud.requiredLibraries) do
 	dofile(string.format('johnhud/lib/%s.lua', v))
 end
 
-jhud.callModuleMethod("__init", jhud.carry or {})
+for i,v in pairs(jhud.options.modules) do --keep this to preserve module order
+	if jhud[v].__init then
+		local suc, err = pcall(jhud[v].__init, jhud[v], jhud.carry or {})
+		if err then jhud.log("INITERR", err) end
+	end
+end
 
 jhud.lang = L:new("_")
 if jhud.chat and jhud.options.m._.showload then
