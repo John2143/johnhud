@@ -256,6 +256,11 @@ function this:__init(carry)
 		self:updateTagTextNext()
 	end)
 end
+function this:__addpeer(id)
+	if not jhud.net:isServer() then return end
+	jhud.net:send("jhud.assault.heistStatus", self.heistStatus)
+	jhud.net:send("jhud.assault.pagersNR", self.pagersNR)
+end
 function this:updateTagTextNext()
 	doUpdate = true
 end

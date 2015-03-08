@@ -74,6 +74,14 @@ function jhud.addCheatModule(tab)
 		table.insert(jhud.options.cheaterModules, v)
 	end
 end
+function jhud.callModuleMethod(method, ...)
+	for i,v in pairs(jhud) do
+		if type(v) == "table" and type(v[method]) == "function" then
+			local suc, err = pcall(v[method], v, ...)
+			if not suc then jhud.log("ERROR @", method, err) end
+		end
+	end
+end
 
 jhud.wantedModules = {}
 jhud.requiredModules = {}
@@ -106,7 +114,7 @@ end
 for i,v in ipairs(jhud.options.modules) do
 	if v and not jhud.options.disabledModules[v] then
 		jhud[v] = {config = jhud.options.m[v]}
-		this = jhud[v]
+		this = jhud[v] --want to avoid setfenv in case of strange behaviour
 		dofile(string.format('johnhud/modules/%s.lua', v))
 	end
 end
@@ -130,12 +138,9 @@ end
 for i,v in pairs(jhud.requiredLibraries) do
 	dofile(string.format('johnhud/lib/%s.lua', v))
 end
-for i,v in pairs(jhud.options.modules) do
-	if jhud[v].__init then
-		local suc, err = pcall(jhud[v].__init, jhud[v], jhud.carry or {})
-		if err then jhud.log(err) end
-	end
-end
+
+jhud.callModuleMethod("__init", jhud.carry or {})
+
 jhud.lang = L:new("_")
 if jhud.chat and jhud.options.m._.showload then
 	jhud.chat(jhud.lang("start"))
@@ -148,16 +153,8 @@ jhud.hook("AchievementManager", "award_steam", function()
 end)
 jhud.hook("GameStateMachine", "update", function(GSMOBJ, t, dt)
 	jhud.whisper = managers.groupai and managers.groupai:state().whisper_mode and managers.groupai:state():whisper_mode()
-	for i,v in pairs(jhud) do
-		if type(v) == "table" then
-			if v.__update then
-				local suc, err = pcall(v.__update, v, t, dt)
-				if not suc then jhud.log(err) end
-			end
-			if v.__igupdate and managers.groupai then
-				local suc, err = pcall(v.__igupdate, v, t, dt)
-				if not suc then jhud.log(err) end
-			end
-		end
+	jhud.callModuleMethod("__update", t, dt)
+	if managers.groupai then
+		jhud.callModuleMethod("__igupdate", t, dt)
 	end
 end)

@@ -83,6 +83,7 @@ function this:__init()
 		end
 	end)
 	self.commands = {}
+	_("AyyY", self)
 	self:addCommand("help", self.showHelp)
 	if self.config.showemotes then
 		jhud.hook("ChatGui", "receive_message", self.chatEmotes)
@@ -152,6 +153,7 @@ function this:nice(args)
 end
 
 function this:addCommand(name, func)
+	_("AYYYYY", self)
 	self.commands[name] = func
 end
 function this:alias(name, o)

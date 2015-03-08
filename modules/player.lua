@@ -131,14 +131,8 @@ this.__init = this.active
 
 function this:activate()
 	if not (managers.network and managers.network:session()) then return false end
-	_player.steamid0 = jhud.bignum("76561197960265728", 10)
+	_player.steamid0 = jhud.bignum("76561197960265728", 10) -- this is the community id of STEAM_0:0:0
 	self:loadPlys()
-	jhud.hook("BaseNetworkSession", "add_peer", function(bns, name, rpc, in_lobby, loading, synched, i, ...)------
-		self.plys[i] = self(i)
-	end)
-	jhud.hook("BaseNetworkSession", "remove_peer", function(bns, peer, i, reason)------
-		self.plys[i] = nil
-	end)
 	if jhud.chat then
 		jhud.chat:addCommand("playing", function(chat)
 			chat(chat.lang("cmdplaying"), self:isSolo() and chat.lang("solo") or "", chat.config.spare1)
@@ -179,6 +173,12 @@ function this:activate()
 		end)
 	end
 	return true
+end
+function this:__addpeer(i)
+	self.plys[i] = self(i)
+end
+function this:__removepeer(i)
+	self.plys[i] = nil
 end
 function this:isSolo()
 	if not self:active() then return false end
