@@ -1,5 +1,5 @@
 function this:__init()
-    self.file = io.open("coplines.txt", "a")
+    self.file = io.open("lines.txt", "a")
     jhud.hook("SoundSource", "post_event", function(ss, line)
         self:write(line)
     end)
