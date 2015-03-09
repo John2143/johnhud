@@ -11,6 +11,7 @@ LOADLANGUAGE = function() return {
 		caution = "oh no",
 		danger = "shit son",
 		calling = "nigga call the cops on yo ass",
+		pagers = "%s cops shot",
 	},
 	_ = {
 		start = "john perfection started",
@@ -44,7 +45,9 @@ LOADLANGUAGE = function() return {
 		num = "money lost due to elevator trick (%s)",
 		other = "good shit",
 		notfound = "no action '%s'",
-	}
+		toocostly = "not enough inside men",
+		verytoocostly = "we don't have enough inside men to do the job",
+	},
 	skilltree = {
 		newtree = "you have a black belt in this?",
 		none = "you ain't got the skillz man",
@@ -53,5 +56,7 @@ LOADLANGUAGE = function() return {
 		notjhud = "i'm not its dad i can't do anything",
 		notempty = "you gotta empty it do -f if you really want to son",
 		removed = "wasted %s",
+		changed = "you're a man of many %s",
+		betweendays = "skills take months to learn",
 	}
 } end
