@@ -1,0 +1,15 @@
+﻿Config:
+ OutputMode: 7
+ OutputFile: PD2HookLOG.log
+ PrintOffsets: true
+
+PersistScripts:
+  - [jhud, 'johnhud\main.lua']
+
+PostRequireScripts:
+- [lib/states/ingamewaitingforplayers, johnhud/modules/intro.lua]
+
+KeyBindings:
+- [VK_F8, MK_MissionElem.lua]
+- [VK_F1, johnhud/main.lua]
+- [VK_F2, johnhud/modules/restart.lua]
