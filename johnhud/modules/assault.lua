@@ -16,9 +16,6 @@ function this:getHeistStatus()
 				local function max(x)
 					state = math.max(state, x)
 				end
-				if self.uncool > 0 then max(self.config.danger.uncool) end
-				if self.uncoolstanding > 0 then max(self.config.danger.uncoolstanding) end
-				if self.caution > 0 then max(self.config.danger.questioning) end
 				return cautda[state]
 			elseif jhud.assault.assaultWaveOccurred then
 				return "control"
@@ -33,11 +30,6 @@ function this:getHeistStatus()
 end
 
 local lastStatus
-local lastCasing = false
-local lastCalling
-local callingText = L("assault","calling")
-local lastUncool
-local lastUncoolStanding
 local doUpdate = true
 function this:updateTag(t, dt)
 	self.heistStatus = self:getHeistStatus() or self.heistStatus
@@ -57,10 +49,6 @@ function this:updateTag(t, dt)
 			}
 		end
 		if jhud.net:isServer() then
-			if lastUncoolStanding ~= self.uncoolstanding then
-				lastUncoolStanding = self.uncoolstanding
-				jhud.net:send("jhud.assault.standing", self.uncoolstanding)
-			end
 			if (self.heistStatus ~= lastStatus) then
 				lastStatus = self.heistStatus
 				jhud.net:send("jhud.assault.heistStatus", self.heistStatus)
@@ -113,7 +101,6 @@ function this:__cleanup(carry)
 	c.textpanel:text("")
 end
 function this:__init(carry)
-	self.uncool = 0
 	--Number of pagers used
 	--This number includes the number of pagers that will need to be used
 	--ie: pagercop dies during ecm, this number get added to anyway
