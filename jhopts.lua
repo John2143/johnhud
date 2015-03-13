@@ -17,6 +17,7 @@ jhud.options= {
 		"autoupdate",
 		"preplanning",
 --		"mutate",
+		"summary",
 	},
 	cheat = false,		-- Enable cheater modules
 	cheaterModules = {
@@ -26,6 +27,9 @@ jhud.options= {
 	m = {
 		_ = {
 			showload = true, --Prints '%skull%: JohnHUD' Loaded to verify that all modules loaded corretly
+		},
+		summary = {
+			enabled = true
 		},
 		assault = {
 			color = {
