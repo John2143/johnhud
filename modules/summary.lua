@@ -8,6 +8,7 @@ function this:hookBonuses()
 end
 function this:doHook(hses, t, dt)
 	local data = hses._data
+	--START COPY--
 	local heat_xp = hses._bonuses.heat_xp or 0
 	local heat = managers.job:last_known_heat() or managers.job:has_active_job() and managers.job:get_job_heat(managers.job:current_job_id()) or 0
 	local heat_color = managers.job:get_heat_color(heat)
@@ -68,23 +69,34 @@ function this:doHook(hses, t, dt)
 	}
 	bonuses_params.bonus_ghost = {
 		color = tweak_data.screen_colors.ghost_color,
-		title = managers.localization:to_upper_text("menu_es_ghost_bonus")
+		title = managers.localization:to_upper_text("menu_es_ghost_bonus").." "..(jhud.undigest(managers.job._global.saved_ghost_bonus) or "0").."%"
 	}
 	bonuses_params.heat_xp = {
 		color = heat_color,
 		title = managers.localization:to_upper_text(heat >= 0 and "menu_es_heat_bonus" or "menu_es_heat_reduction")
 	}
+	--END COPY--
 	for i, func_name in ipairs(bonuses_list) do
 		local bonus = data.bonuses[func_name] or 0
 		if bonus ~= 0 then
 			local bonus_params = {}
 			bonus_params.color = bonuses_params[func_name] and bonuses_params[func_name].color or Color.purple
 			bonus_params.title = bonuses_params[func_name] and bonuses_params[func_name].title or "ERR: " .. func_name
-			bonus_params.bonus = bonus
-			self:chatBonus(bonus_params) ---------------------------
+			bonus_params.bonus = managers.money:add_decimal_marks_to_string(bonus) or bonus
+			if self.config.chat then
+				self:chatBonus(bonus_params)
+			end
+			if self.config.draw then
+				self:drawBonus(bonus_params)
+			end
 		end
 	end
 end
 function this:chatBonus(params)
 	jhud.chat(params.title, params.bonus, params.color, "icon_buy")
+end
+function this:drawBonus(param)
+	if not self.y then
+		--TODO
+	end
 end

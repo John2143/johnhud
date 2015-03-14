@@ -11,6 +11,7 @@
  - Ignore: Mute annoying people and ban them from your lobbies (Currently only the first one)
  - Automatic update system: Never worry about having the latest version!
  - Change skills/perkdeck during heist planning
+ - Better post-heist summary screen
 
 ## Planned
  - A (local) site that will show detailed statistics about the players you are playing with: Simply open a html document in a web browser

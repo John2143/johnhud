@@ -29,7 +29,8 @@ jhud.options= {
 			showload = true, --Prints '%skull%: JohnHUD' Loaded to verify that all modules loaded corretly
 		},
 		summary = {
-			enabled = true
+			chat = false,
+			draw = true,
 		},
 		assault = {
 			color = {

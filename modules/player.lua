@@ -114,6 +114,9 @@ function this:loadPlys()
 	for i,v in pairs(managers.network:session():peers()) do
 		self.plys[i] = self(i)
 	end
+	self:loadLocal()
+end
+function this:loadLocal()
 	local localid = jhud.net:getPeerID()
 	local localplayer = self(localid)
 	localplayer.iscl = true
@@ -122,18 +125,23 @@ end
 
 function this:active()
 	if self.isactive then return true end
-	self.isactive = true
 	self.isactive = self:activate()
 	jhud.dlog("Activated player", self.isactive)
 	return self.isactive
 end
-this.__init = this.active
+function this:__init()
+	this:active()
+end
 
 function this:activate()
 	if not (managers.network and managers.network:session()) then return false end
 	_player.steamid0 = jhud.bignum("76561197960265728", 10) -- this is the community id of STEAM_0:0:0
 	self:loadPlys()
 	if jhud.chat then
+		jhud.hook("NetworkMatchMakingSTEAM", "leave_game", function()
+			self.plys = {}
+			self:loadLocal()
+		end)
 		jhud.chat:addCommand("playing", function(chat)
 			chat(chat.lang("cmdplaying"), self:isSolo() and chat.lang("solo") or "", chat.config.spare1)
 			for i,v in pairs(self.plys) do
