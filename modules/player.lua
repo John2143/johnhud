@@ -130,7 +130,7 @@ function this:active()
 	return self.isactive
 end
 function this:__init()
-	this:active()
+	self:active()
 end
 
 function this:activate()
@@ -183,9 +183,11 @@ function this:activate()
 	return true
 end
 function this:__addpeer(i)
+	if not self:active() then return end
 	self.plys[i] = self(i)
 end
 function this:__removepeer(i)
+	if not self:active() then return end
 	self.plys[i] = nil
 end
 function this:isSolo()
@@ -267,6 +269,12 @@ function this:getPlayers(text)
 			end
 		elseif name == "^" then
 			doInsert(self:localPlayer())
+		elseif name == "!" then
+			for i,v in pairs(self.plys) do
+				if not v.iscl then
+					doInsert(v)
+				end
+			end
 		else
 			for k,v in pairs(self.plys) do
 				if v:name():lower():find(name) then

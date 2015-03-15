@@ -8,6 +8,7 @@ function this:hookBonuses()
 end
 function this:doHook(hses, t, dt)
 	local data = hses._data
+	local panel = hses._lp_forepanel
 	--START COPY--
 	local heat_xp = hses._bonuses.heat_xp or 0
 	local heat = managers.job:last_known_heat() or managers.job:has_active_job() and managers.job:get_job_heat(managers.job:current_job_id()) or 0
@@ -69,7 +70,7 @@ function this:doHook(hses, t, dt)
 	}
 	bonuses_params.bonus_ghost = {
 		color = tweak_data.screen_colors.ghost_color,
-		title = managers.localization:to_upper_text("menu_es_ghost_bonus").." "..(jhud.undigest(managers.job._global.saved_ghost_bonus) or "0").."%"
+		title = managers.localization:to_upper_text("menu_es_ghost_bonus").." "..(math.floor(100*(jhud.undigest(managers.job._global.saved_ghost_bonus) or "0"))).."%"
 	}
 	bonuses_params.heat_xp = {
 		color = heat_color,
@@ -82,12 +83,12 @@ function this:doHook(hses, t, dt)
 			local bonus_params = {}
 			bonus_params.color = bonuses_params[func_name] and bonuses_params[func_name].color or Color.purple
 			bonus_params.title = bonuses_params[func_name] and bonuses_params[func_name].title or "ERR: " .. func_name
-			bonus_params.bonus = managers.money:add_decimal_marks_to_string(bonus) or bonus
+			bonus_params.bonus = managers.money:add_decimal_marks_to_string(tostring(bonus)) or bonus
 			if self.config.chat then
 				self:chatBonus(bonus_params)
 			end
 			if self.config.draw then
-				self:drawBonus(bonus_params)
+				self:drawBonus(bonus_params, panel)
 			end
 		end
 	end
@@ -95,8 +96,57 @@ end
 function this:chatBonus(params)
 	jhud.chat(params.title, params.bonus, params.color, "icon_buy")
 end
-function this:drawBonus(param)
+function this:drawBonus(param, panel)
 	if not self.y then
-		--TODO
+		local sumpanel = panel:child("sum_text")
+		self.y = sumpanel:bottom() + sumpanel:h()
+		self.delta = sumpanel:h()
+		self.lrspace = sumpanel:h() --this is a horizontal offset
+		self.x = sumpanel:right()
 	end
+	local title = panel:text{
+		name = "jhud_bonus_title_"..param.title,
+		text = param.title,
+		font = tweak_data.menu.pd2_small_font,
+		font_size = tweak_data.menu.pd2_small_font_size,
+		align = "right",
+		alpha = 1,
+		color = param.color
+	}
+	local bonus = panel:text{
+		name = "jhud_bonus_bonus_"..param.bonus,
+		text = param.bonus,
+		font = tweak_data.menu.pd2_small_font,
+		font_size = tweak_data.menu.pd2_small_font_size,
+		align = "left",
+		alpha = 1,
+		color = param.color
+	}
+	self.y = self.y + self.delta
+
+	title:set_right(self.x - self.lrspace)
+	title:set_top(self.y)
+	title:set_visible(true)
+
+	bonus:set_left(self.x)
+	bonus:set_top(self.y)
+	bonus:set_visible(true)
+
+	if not self.bonusPanels then
+		self.bonusPanels = self.bonusPanels or {}
+		setmetatable(self.bonusPanels, {__mode = "v"}) --see self:hideBonus
+	end
+	table.insert(self.bonusPanels, title)
+	table.insert(self.bonusPanels, bonus)
+end
+function this:hideBonus()
+	--I dont know how do deal with the garbage collection of these panels
+	--so i'm relying on the parent panel to do it, and these will get deallocated
+	--beacuse bonusPanels has __mode v
+	for i,v in pairs(self.bonusPanels or {}) do
+		if v.set_visible then
+			v:set_visible(false)
+		end
+	end
+	self.bonusPanels = {}
 end
