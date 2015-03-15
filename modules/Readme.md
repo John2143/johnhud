@@ -1,8 +1,8 @@
 #Developer readme
 
 ## Hook
- - jhud.hook("CLASS", "FUNCTION", yourfunction, hooktype or jhud.hook.PREHOOK) |
- Valid hooktypes are:
+jhud.hook("CLASS", "FUNCTION", yourfunction, hooktype or jhud.hook.PREHOOK) |
+Valid hooktypes are:
    - PREHOOK | Arguments: The original function arguments (Including self) |
    executes callback before the original function is called. Return
    true to disable the execution of the original function, or return a table with
@@ -33,7 +33,8 @@ jhud.hook("FunctionClass", "func", function(forward, rets)
 	end
 end, jhud.hook.POSTHOOK)
 ```
-	- OVERWRITE | args: The original function arguments including self | Directly
+
+    - OVERWRITE | args: The original function arguments including self | Directly
 	overwrite a function. This will disable all hooks. Only use this if you both
 	know what you're doing, and know what the risks are. No example included.
 
