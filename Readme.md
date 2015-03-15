@@ -11,7 +11,8 @@
  - Ignore: Mute annoying people and ban them from your lobbies (Currently only the first one)
  - Automatic update system: Never worry about having the latest version!
  - Change skills/perkdeck during heist planning
- - Better post-heist summary screen
+ - Better summary screen
+ - Commend and report functions (from pd2stats.com api)
 
 ## Planned
  - A (local) site that will show detailed statistics about the players you are playing with: Simply open a html document in a web browser
@@ -20,6 +21,27 @@
  - Mabye I can make a level editor or something cool like that
 
 ## Commands
+### Syntax
+##### General command syntax is "/name arg1 arg2 arg3..." or "!name arg1 arg2 arg3..."  
+Every command that requires a player argument is required to have the ability to
+accept as many as you give it, however, some commands may not have the ability
+to use every player. There are a few ways to specify a player or players.
+
+ - `*` All players in the game
+ - `!` All players in the game excluding you. Identical to `*,-^`
+ - `^` You (local player)
+ - `name` The name of a player or players
+
+The `-` character when prefixing anything equals the opposite of that group.
+Multiple arguments may be comma seperated and will execute sequentially.
+
+Examples:
+
+ - `/kick !,-bob` Kick everyone in the lobby unless they have the word 'bob' in
+ their name
+ - `/ignore bar,-foobar` Ignore anyone with the word 'bar' in their name unless
+ they have the word 'foobar' in thier name
+
 ### Module: player.lua
  - /playing: prints player list and steamids
  - /reload: reloads players
@@ -63,3 +85,18 @@
   - --new,-n | Creates a new skill tree
   - --force,-f | Force the deleteion
   - Tree | The name of the skilltree or the ID of the skilltree(first is 1, second is 2...)
+
+### Module: pd2stats.lua
+ - /commend <name> <reason>: Comment a player or players. Valid reasons:
+  - teacher, t | They are a good teacher
+  - friendly, f, kind, k | They were nice to play with
+  - leader, l | They are a good leader
+ - /report <name> <reason>:  Report a player for bad conduct. Valid reasons:
+  - cheater, c | They have used some kind of cheat such as impossible skill builds
+  or infinite ammo.
+  - greifing, g | This is any type of purposful misconduct that is meant to hinder
+  the ability to successfully complete the heist. Some examples would be team
+  damage, shooting a loud gun during stealth, not being in the escape, or throwing
+  bags to unreachable positions
+  - abuse, a | Abusing host privelages(probably). Some examples would be using a
+  mutator, kicking as the game ends, or greifing(without fear of being kicked).

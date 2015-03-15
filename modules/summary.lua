@@ -3,8 +3,12 @@ function this:__init()
 end
 function this:hookBonuses()
 	jhud.hook("HUDStageEndScreen", "stage_init", function(forward, ret)
+		self.y = nil
 		self:doHook(unpack(forward))
 	end, jhud.hook.POSTHOOK)
+	jhud.hook("HUDStageEndScreen", "stage_spin_levels", function()
+		self:hideBonus()
+	end)
 end
 function this:doHook(hses, t, dt)
 	local data = hses._data
@@ -77,29 +81,45 @@ function this:doHook(hses, t, dt)
 		title = managers.localization:to_upper_text(heat >= 0 and "menu_es_heat_bonus" or "menu_es_heat_reduction")
 	}
 	--END COPY--
+	local total = 0
 	for i, func_name in ipairs(bonuses_list) do
 		local bonus = data.bonuses[func_name] or 0
 		if bonus ~= 0 then
-			local bonus_params = {}
-			bonus_params.color = bonuses_params[func_name] and bonuses_params[func_name].color or Color.purple
-			bonus_params.title = bonuses_params[func_name] and bonuses_params[func_name].title or "ERR: " .. func_name
-			bonus_params.bonus = managers.money:add_decimal_marks_to_string(tostring(bonus)) or bonus
-			if self.config.chat then
-				self:chatBonus(bonus_params)
-			end
-			if self.config.draw then
-				self:drawBonus(bonus_params, panel)
-			end
+			self:parse({
+				color = bonuses_params[func_name] and bonuses_params[func_name].color or Color.purple,
+				title = bonuses_params[func_name] and bonuses_params[func_name].title or "ERR: " .. func_name,
+				bonus = bonus
+			}, panel)
+			total = total + bonus
 		end
+	end
+	self:parse({
+		color = Color("ffffff"),
+		title = "TOTAL BONUS",
+		bonus = total,
+	}, panel)
+	self:parse({
+		color = Color("ffffff"),
+		title = "TOTAL GAINED",
+		bonus = hses._static_gained_xp,
+	}, panel)
+end
+function this:parse(bonus_params, panel)
+	if self.config.chat then
+		self:chatBonus(bonus_params)
+	end
+	if self.config.draw then
+		self:drawBonus(bonus_params, panel)
 	end
 end
 function this:chatBonus(params)
 	jhud.chat(params.title, params.bonus, params.color, "icon_buy")
 end
 function this:drawBonus(param, panel)
+	local strbonus = managers.money:add_decimal_marks_to_string(tostring(param.bonus)) or param.bonus
 	if not self.y then
 		local sumpanel = panel:child("sum_text")
-		self.y = sumpanel:bottom() + sumpanel:h()
+		self.y = sumpanel:bottom() - sumpanel:h()*6
 		self.delta = sumpanel:h()
 		self.lrspace = sumpanel:h() --this is a horizontal offset
 		self.x = sumpanel:right()
@@ -115,7 +135,7 @@ function this:drawBonus(param, panel)
 	}
 	local bonus = panel:text{
 		name = "jhud_bonus_bonus_"..param.bonus,
-		text = param.bonus,
+		text = strbonus,
 		font = tweak_data.menu.pd2_small_font,
 		font_size = tweak_data.menu.pd2_small_font_size,
 		align = "left",
