@@ -59,5 +59,23 @@ LOADLANGUAGE = function() return {
 		removed = "Successfully removed %s",
 		changed = "Changed skill set to %s",
 		betweendays = "You can not switch skillsets when you are between days",
-	}
+	},
+	pd2stats = {
+		report = "%s has reported you for being %s",
+		commend = "%s has commended you for being %s",
+
+		docommend1 = "You have commended ",
+		docommend2 = " for being %s",
+
+		doreport1 = "You have commended ",
+		doreport2 = " for being %s",
+
+		kind = "friendly",
+		teacher = "a teacher",
+		leader = "a leader",
+		akind = "kind",
+		ateacher = "teacher",
+		aleader = "leader",
+		someone = "Someone",
+	},
 } end

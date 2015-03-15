@@ -33,11 +33,11 @@ function this:sendHandshake(hstype)
 	if hstype == 1 then
 		data[1] = jhud.cheater and 1 or 0
 	end
-	self:_sendPure(self.RETURN_HANDSHAKE, hstype, self:getPeerID(), unpack(data))
+	self:sendPure(self.RETURN_HANDSHAKE, hstype, self:getPeerID(), unpack(data))
 end
 
 function this:hostHasJHUD()
-	return false
+	return false --TODO
 end
 
 this.TO_HOST = 1
@@ -45,6 +45,7 @@ this.TO_PEERS = 2
 this.REQUEST_HANDSHAKE_SPECIFIC = 3
 this.REQUEST_HANDSHAKE_ALL = 4
 this.RETURN_HANDSHAKE = 5
+this.TO_PEERS_SPECIFIC = 6
 
 function this:__init()
 	if not _G.UnitNetworkHandler then return end
@@ -80,7 +81,8 @@ function this:__init()
 
 
 			if method == self.TO_HOST and self:isServer() or
-					method == self.TO_PEERS then
+					method == self.TO_PEERS or
+					method == self.TO_PEERS_SPECIFIC and table.hasValues(methoddata, self:getPeerID()) then
 
 				self:executeNethook(dat)
 			elseif method == self.REQUEST_HANDSHAKE_SPECIFIC and table.hasValue(methoddata, self:getPeerID()) or
@@ -109,7 +111,12 @@ end
 
 
 this._joinchar = "|"
-function this:_sendPure(to, ...)
+
+function this:asNetMethod(typ, ...)
+	return typ..","..table.concat(..., ",")
+end
+
+function this:sendPure(to, ...)
 	if not(managers.network or managers.network:session()) then return false end
 	local send =
 		"jhud"..self._joinchar..
@@ -127,7 +134,7 @@ function this:_basicSend(name, data, to, localcall)
 			self.hooks[name](unpack(data))
 		end
 	end
-	if self:_sendPure(to, name, unpack(data)) then
+	if self:sendPure(to, name, unpack(data)) then
 		return true
 	else
 		jhud.dlog("could not send (mabye not in a game) [no game session]")

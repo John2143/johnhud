@@ -32,6 +32,12 @@ jhud.options= {
 			chat = false,
 			draw = true,
 		},
+		pd2stats = {
+			commend = Color("15ed4f"),
+			report = Color("de2500"),
+			showCommends = true, --Give the other person a message that you are commendthing them
+			showReports = false,
+		},
 		assault = {
 			color = {
 				anticipation = Color('7519FF'),

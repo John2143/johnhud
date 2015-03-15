@@ -1,3 +1,5 @@
+jhud.wmod("chat")
+jhud.rmod("player")
 function this:api(api, data, callback)
 	local url = "api.pd2stats.com/%s/?%s"
 	local datam = {}
@@ -10,6 +12,7 @@ end
 function this:__init()
 	if not jhud.player then return end
 	if jhud.chat then
+		self.lang = L:new("pd2stats")
 		jhud.chat:addCommand("commend", function(chat, plys, reason)
 			local ply = jhud.play:getPlayers(plys)
 			reason = reason:lower()
@@ -28,16 +31,41 @@ function this:__init()
 				doreason = reason
 			end
 			if not doreason then return jhud.chat.MISSING_ARGUMENTS end --TODO make this a chatfail
+			local sendids = {}
 			for i,v in pairs(plys) do
 				self:api("commend/v2", {
 					id = v:cID(),
 					reason = doreason,
 					type = "lua",
 				}, self:parseWrapper(v.id))
+				table.insert(sendids, v.id)
 			end
+			if self.config.showCommends then
+				jhud.net:sendPure(
+					jhud.net:asNetMethod(
+						jhud.net.TO_PEERS_SPECIFIC,
+						unpack(sendids)
+					),
+					"jhud.pd2stats.commend",
+					doreason,
+					jhud.net:getPeerID()
+				)
+			end
+			jhud.chat("COMMEND", jhud.chat:nice{
+				self.lang("docommend1"),
+				plys,
+				self.lang("docommend2"):format(doreason),
+			}, self.config.commend)
 		end)
-		jhud.net:hook("jhud.pd2stats.action", function()
-
+		jhud.net:hook("jhud.pd2stats.commend", function(reason, from)
+			local from = jhud.player:playerByPeerID(tonumber(from))
+			local name = from and from:name() or self.lang("someone")
+			jhud.chat(
+				"COMMEND",
+				self.lang("commend"):format(self.lang(reason), name),
+				self.config.commend,
+				"icon_buy" -- + symbol
+			)
 		end)
 	end
 end
