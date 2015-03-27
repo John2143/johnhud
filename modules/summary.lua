@@ -74,7 +74,7 @@ function this:doHook(hses, t, dt)
 	}
 	bonuses_params.bonus_ghost = {
 		color = tweak_data.screen_colors.ghost_color,
-		title = managers.localization:to_upper_text("menu_es_ghost_bonus").." "..(math.floor(100*(jhud.undigest(managers.job._global.saved_ghost_bonus) or "0"))).."%"
+		title = managers.localization:to_upper_text("menu_es_ghost_bonus").." "..(math.floor(100*(jhud.undigest(managers.job._global.active_ghost_bonus) or "0"))).."%"
 	}
 	bonuses_params.heat_xp = {
 		color = heat_color,
@@ -98,11 +98,12 @@ function this:doHook(hses, t, dt)
 		title = "TOTAL BONUS",
 		bonus = total,
 	}, panel)
-	self:parse({
-		color = Color("ffffff"),
-		title = "TOTAL GAINED",
-		bonus = hses._static_gained_xp,
-	}, panel)
+	--static gained xp does not calculate until after everything is displayed
+	--self:parse({
+		--color = Color("ffffff"),
+		--title = "TOTAL GAINED",
+		--bonus = hses._static_gained_xp or 0,
+	--}, panel)
 end
 function this:parse(bonus_params, panel)
 	if self.config.chat then

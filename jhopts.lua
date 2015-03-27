@@ -18,6 +18,8 @@ jhud.options= {
 		"preplanning",
 --		"mutate",
 		"summary",
+--		"gamehud",
+--		"pd2stats",
 	},
 	cheat = false,		-- Enable cheater modules
 	cheaterModules = {
@@ -31,6 +33,10 @@ jhud.options= {
 		summary = {
 			chat = false,
 			draw = true,
+		},
+		gamehud = {
+			arcolor = Color("0000ff"),
+			hpcolor = Color("ff0000"),
 		},
 		pd2stats = {
 			commend = Color("15ed4f"),
@@ -76,6 +82,10 @@ jhud.options= {
 				questioning = 0,--Someone is being detected
 				nopagers = 3,	--More than 4 pagers required
 			},
+			
+			showdiff = true,	--Show internal difficulty
+			showdrama = true,	--Show internal drama percent
+
 			showpagers = true,	--Show the #pagers in the indicator
 			showpagersleft = true,	--Show the number of pagers that you can use
 									-- When false this will display the amount of pagers you have used

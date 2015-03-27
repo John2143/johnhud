@@ -41,6 +41,39 @@ function this:getHeistStatus()
 	end
 end
 
+--TODO make these not temporary
+local dramaH = 200
+local dramaX = 45
+local dramaW = 20
+local buffer = 5
+local dramaY = 0
+
+
+function this:setDramaSlider(value)
+	if not self.dramapanel then return end
+	local const = dramaH/100
+	self.dramapanel:set_h(-const*value + 1)
+end
+function this:dramaIn()
+	local start
+	local startx = -dramaW
+	local endx = dramaX
+	local delta = endx - startx
+
+	local animtime = .75
+	table.insert(self.anims, function(t, dt)
+		start = start or t
+		local pct = math.min((t - start)/animtime, 1)
+		local pos = pct^(1/4) --curve smoothing
+
+		local x = startx + pos*delta
+
+		self.dramafluff:set_x(x)
+		self.dramapanel:set_x(x + buffer)
+		return pct == 1
+	end)
+end
+
 local lastStatus
 local lastCasing = false
 local lastCalling
@@ -48,6 +81,9 @@ local callingText = L("assault","calling")
 local lastUncool
 local lastUncoolStanding
 local doUpdate = true
+local lastWhisper = true
+local lastDrama, lastDiff
+
 function this:updateTag(t, dt)
 	self.heistStatus = self:getHeistStatus() or self.heistStatus
 	local isCasing = managers.hud and managers.hud._hud_assault_corner._casing
@@ -76,6 +112,33 @@ function this:updateTag(t, dt)
 				font = tweak_data.hud_present.text_font,
 				font_size = tweak_data.hud_present.text_size  + self.config.calling.text_size,
 			}
+
+			dramaY = (jhud.resolution.y)/2 + 25
+			self.dramafluff = jhud.createPanel()
+			self.dramafluff:set_x(-300)
+			self.dramafluff:set_y(dramaY)
+			self.dramafluff:set_w(dramaW)
+			self.dramafluff:set_h(-dramaH - 2*buffer)
+			self.dramafluff:rect{
+				name = "fbg",
+				color = Color("dfdfdf"):with_alpha(.2),
+				layer = -1001,
+				halign = "scale",
+				valign = "scale"
+			}
+
+			self.dramapanel = jhud.createPanel()
+			self.dramapanel:set_x(-300)
+			self.dramapanel:set_y(dramaY - buffer)
+			self.dramapanel:set_w(dramaW - 2*buffer)
+			self.dramapanel:rect{
+				name = "bg",
+				color = Color("ffffff"):with_alpha(.5),
+				layer = -1000,
+				halign = "scale",
+				valign = "scale"
+			}
+			self:setDramaSlider(100)
 		end
 		if jhud.net:isServer() then
 			if lastUncoolStanding ~= self.uncoolstanding then
@@ -98,6 +161,18 @@ function this:updateTag(t, dt)
 			if lastCalling ~= self.calling then
 				lastCalling = self.calling
 				jhud.net:send("jhud.assault.calling", self.calling)
+			end
+			if lastDrama ~= self.drama then
+				lastDrama = self.drama
+				jhud.net:send("jhud.assault.drama", self.drama)
+			end
+			if lastDiff ~= self.diff then
+				lastDiff = self.diff
+				jhud.net:send("jhud.assault.diff", self.diff)
+			end
+			if lastWhisper ~= jhud.whisper then
+				lastWhisper = jhud.whisper
+				jhud.net:send("jhud.assault.whisperState", jhud.whisper and 1 or 0)
 			end
 		end
 		if doUpdate then self:updateTagText() end
@@ -149,6 +224,13 @@ function this:updateTagText()
 		if self.config.showuncoolstanding and self.uncoolstanding > 0 then
 			text = text.." "..self.uncoolstanding.."^"
 		end
+	else
+		if self.config.showdrama and self.drama ~= nil then
+			text = text.." "..self.drama.."%"
+		end
+		if self.config.showdiff and self.diff ~= nil then
+			text = text.." "..self.diff..(jhud.chat and jhud.chat.icons.Skull or "D")
+		end
 	end
 	if self.config.uppercase then
 		text = L:affix(text:upper())
@@ -158,7 +240,7 @@ function this:updateTagText()
 end
 local lastSucessfulPagerNR = 0
 function this:updateDangerData(t, dt)
-	if not (jhud.net:isServer() and self.pagersActive) then return end
+	if not self.pagersActive then return end
 	self.pagersUsed = self:getPagersUsed()
 	if self.pagersUsed ~= lastSucessfulPagerNR then
 		lastSucessfulPagerNR = self.pagersUsed
@@ -190,12 +272,28 @@ function this:updateDangerData(t, dt)
 		end
 	end
 end
+function this:updateAssault(t, dt)
+	local gai = managers.groupai:state()
+	self.drama = gai._drama_data and math.floor(gai._drama_data.amount*100)
+	self.diff = gai._difficulty_value and math.floor(gai._difficulty_value*10)
+end
 
 
 function this:__igupdate(t, dt)
 	if not managers then return end
-	self:updateDangerData(t, dt)
+	if jhud.net:isServer() then
+		if jhud.whisper then
+			self:updateDangerData(t, dt)
+		else
+			self:updateAssault(t, dt)
+		end
+	end
 	self:updateTag(t, dt)
+	for i,v in ipairs(self.anims or {}) do
+		if v(t, dt) then
+			table.remove(self.anims, i)
+		end
+	end
 end
 
 function this:__cleanup(carry)
@@ -210,6 +308,9 @@ function this:__cleanup(carry)
 	c.callpanel:text("")
 end
 function this:__init(carry)
+	----------------asegasegasegakjinnnnnnnnnnnnnnnnnnnnnnnnn
+
+	self.anims = {}
 	self.uncool = 0
 	--Number of pagers used
 	--This number includes the number of pagers that will need to be used
@@ -253,6 +354,23 @@ function this:__init(carry)
 	end)
 	jhud.net:hook("jhud.assault.uncool", function(data)
 		self.uncool = tonumber(data)
+		self:updateTagTextNext()
+	end)
+	jhud.net:hook("jhud.assault.drama", function(data)
+		self.drama = tonumber(data)
+		self:setDramaSlider(self.drama)
+		self:updateTagTextNext()
+	end)
+	jhud.net:hook("jhud.assault.whisperState", function(data)
+		jhud.whisper = tonumber(data) == 1
+		if not jhud.whisper then
+			self:dramaIn()
+		else
+		end
+		self:updateTagTextNext()
+	end)
+	jhud.net:hook("jhud.assault.diff", function(data)
+		self.diff = tonumber(data)
 		self:updateTagTextNext()
 	end)
 end
