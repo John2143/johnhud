@@ -47,31 +47,104 @@ local dramaX = 45
 local dramaW = 20
 local buffer = 5
 local dramaY = 0
+local markbuffer = 2
+local markH = 4
+local animtime = 1/3
+local const = dramaH/100
 
+
+local function nonlerpfunc(pct)
+	return pct^(2/5)
+end
+local function reversenlerpfunc(pct)
+	return 1-nonlerpfunc(1-pct)
+end
+local function nlirp(a, d, p, reverse) --a = start, d = delta, p = pct
+	return a + d*(reverse and reversenlerpfunc or nonlerpfunc)(p)
+end
 
 function this:setDramaSlider(value)
 	if not self.dramapanel then return end
-	local const = dramaH/100
 	self.dramapanel:set_h(-const*value + 1)
 end
-function this:dramaIn()
+
+local function createAnim(func, destroy, animtime, startx, endx, reverse)
 	local start
-	local startx = -dramaW
-	local endx = dramaX
+	--local startx = start_ -- -dramaW
+	--local endx = end_ --dramaX
 	local delta = endx - startx
 
-	local animtime = .75
-	table.insert(self.anims, function(t, dt)
+	return function(t, dt) --Should probaby do this by using dt
 		start = start or t
 		local pct = math.min((t - start)/animtime, 1)
-		local pos = pct^(1/4) --curve smoothing
+		func(nlirp(startx, delta, pct, reverse))
+		if pct == 1 then
+			if destroy then destroy() end
+			return true
+		end
+	end
+end
 
-		local x = startx + pos*delta
+function this:addAnim(anim)
+	table.insert(self.anims, anim)
+end
 
+function this:dramaIn(tied)
+	self:addAnim(createAnim(function(x)
 		self.dramafluff:set_x(x)
 		self.dramapanel:set_x(x + buffer)
-		return pct == 1
-	end)
+	end, tied and function()
+		self:marksIn()
+	end, animtime, -dramaW, dramaX, false))
+end
+
+function this:marksIn()
+	if not self.dramamarks then return end
+	self:addAnim(createAnim(function(x)
+		for i,v in pairs(self.dramamarks) do
+			v:set_x(x)
+		end
+	end, nil, animtime, -dramaW, dramaX + markbuffer, false))
+end
+
+function this:dramaOut(tied)
+	self:addAnim(createAnim(function(x)
+		self.dramafluff:set_x(x)
+		self.dramapanel:set_x(x + buffer)
+	end, tied and function()
+		self:marksOut()
+	end, animtime, dramaX, -dramaW, false))
+end
+
+function this:marksOut()
+	if not self.dramamarks then return end
+	self:addAnim(createAnim(function(x)
+		for i,v in pairs(self.dramamarks) do
+			v:set_x(x)
+		end
+	end, nil, animtime, dramaX + markbuffer, -dramaW, false))
+end
+
+function this:createMarks(marks)
+	for i,v in pairs(self.dramamarks or {}) do
+		v:hide() --TODO find if theres a panel:destroy()
+	end
+	self.dramamarks = {}
+	for i,v in pairs(marks) do
+		local mark= jhud.createPanel()
+		mark:set_x(-300)
+		mark:set_y(dramaY - buffer - const*v.amt + markH/2)
+		mark:set_w(dramaW - 2*markbuffer)
+		mark:set_h(-markH)
+		mark:rect{
+			name = "fbg",
+			color = v.color:with_alpha(.5),
+			layer = -600,
+			halign = "scale",
+			valign = "scale"
+		}
+		table.insert(self.dramamarks, mark)
+	end
 end
 
 local lastStatus
@@ -122,7 +195,7 @@ function this:updateTag(t, dt)
 			self.dramafluff:rect{
 				name = "fbg",
 				color = Color("dfdfdf"):with_alpha(.2),
-				layer = -1001,
+				layer = -1000,
 				halign = "scale",
 				valign = "scale"
 			}
@@ -134,7 +207,7 @@ function this:updateTag(t, dt)
 			self.dramapanel:rect{
 				name = "bg",
 				color = Color("ffffff"):with_alpha(.5),
-				layer = -1000,
+				layer = -800,
 				halign = "scale",
 				valign = "scale"
 			}
@@ -308,8 +381,23 @@ function this:__cleanup(carry)
 	c.callpanel:text("")
 end
 function this:__init(carry)
-	----------------asegasegasegakjinnnnnnnnnnnnnnnnnnnnnnnnn
-
+	local controlData = {
+		{amt = 0, len = 10, color = self.config.color.build},
+	}
+	self.dramaData = {
+		fade = {
+			{amt = 0, len = 25, color = self.config.color.control},
+		},
+		control = controlData, --lasts 15 seconds
+		compromised = controlData,
+		sustain = nil,
+		anticipation = { --lasts 30 seconds, 40 seconds on dw, 60 if hostage
+			{amt = 95, len = 5, color = self.config.color.sustain}
+		},
+		build = {--lasts 35 seconds
+			{amt = 95, len = 5, color = self.config.color.build}
+		},
+	}
 	self.anims = {}
 	self.uncool = 0
 	--Number of pagers used
