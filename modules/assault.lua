@@ -68,7 +68,7 @@ function this:setDramaSlider(value)
 	self.dramapanel:set_h(-const*value + 1)
 end
 
-local function createAnim(func, destroy, animtime, startx, endx, reverse)
+function this:createAnim(func, destroy, animtime, startx, endx, reverse)
 	local start
 	--local startx = start_ -- -dramaW
 	--local endx = end_ --dramaX
@@ -79,10 +79,22 @@ local function createAnim(func, destroy, animtime, startx, endx, reverse)
 		local pct = math.min((t - start)/animtime, 1)
 		func(nlirp(startx, delta, pct, reverse))
 		if pct == 1 then
-			if destroy then destroy() end
+			if destroy then destroy(self) end
 			return true
 		end
 	end
+end
+function this:heistStateTransition()
+	jhud.dlog("Transition method called with status"..self.heistStatus)
+	local new = self.dramaData[self.heistStatus]
+	self:marksOut(function(self)
+		jhud.log("destroy called")
+		self.dramamarks = nil
+		if new then
+			self:createMarks(new)
+			self:marksIn()
+		end
+	end)
 end
 
 function this:addAnim(anim)
@@ -90,39 +102,38 @@ function this:addAnim(anim)
 end
 
 function this:dramaIn(tied)
-	self:addAnim(createAnim(function(x)
+	self:addAnim(self:createAnim(function(x)
 		self.dramafluff:set_x(x)
 		self.dramapanel:set_x(x + buffer)
-	end, tied and function()
-		self:marksIn()
-	end, animtime, -dramaW, dramaX, false))
+	end, tied, animtime, -dramaW, dramaX, false))
 end
 
-function this:marksIn()
+function this:marksIn(tied)
 	if not self.dramamarks then return end
-	self:addAnim(createAnim(function(x)
+	self:addAnim(self:createAnim(function(x)
 		for i,v in pairs(self.dramamarks) do
 			v:set_x(x)
 		end
-	end, nil, animtime, -dramaW, dramaX + markbuffer, false))
+	end, tied, animtime, -dramaW, dramaX + markbuffer, false))
 end
 
 function this:dramaOut(tied)
-	self:addAnim(createAnim(function(x)
+	self:addAnim(self:createAnim(function(x)
 		self.dramafluff:set_x(x)
 		self.dramapanel:set_x(x + buffer)
-	end, tied and function()
-		self:marksOut()
-	end, animtime, dramaX, -dramaW, false))
+	end, tied, animtime, dramaX, -dramaW, false))
 end
 
-function this:marksOut()
-	if not self.dramamarks then return end
-	self:addAnim(createAnim(function(x)
+function this:marksOut(tied)
+	if not self.dramamarks then
+		if tied then tied(self) end
+		return
+	end
+	self:addAnim(self:createAnim(function(x)
 		for i,v in pairs(self.dramamarks) do
 			v:set_x(x)
 		end
-	end, nil, animtime, dramaX + markbuffer, -dramaW, false))
+	end, tied, animtime, dramaX + markbuffer, -dramaW, false))
 end
 
 function this:createMarks(marks)
@@ -130,12 +141,12 @@ function this:createMarks(marks)
 		v:hide() --TODO find if theres a panel:destroy()
 	end
 	self.dramamarks = {}
-	for i,v in pairs(marks) do
+	for i,v in ipairs(marks) do
 		local mark= jhud.createPanel()
 		mark:set_x(-300)
 		mark:set_y(dramaY - buffer - const*v.amt + markH/2)
 		mark:set_w(dramaW - 2*markbuffer)
-		mark:set_h(-markH)
+		mark:set_h(-(markH + const*(v.len or 0)))
 		mark:rect{
 			name = "fbg",
 			color = v.color:with_alpha(.5),
@@ -392,10 +403,10 @@ function this:__init(carry)
 		compromised = controlData,
 		sustain = nil,
 		anticipation = { --lasts 30 seconds, 40 seconds on dw, 60 if hostage
-			{amt = 95, len = 5, color = self.config.color.sustain}
+			{amt = 95, len = 5, color = self.config.color.build}
 		},
 		build = {--lasts 35 seconds
-			{amt = 95, len = 5, color = self.config.color.build}
+			{amt = 95, len = 5, color = self.config.color.sustain}
 		},
 	}
 	self.anims = {}
@@ -425,6 +436,7 @@ function this:__init(carry)
 	end
 	jhud.net:hook("jhud.assault.heistStatus", function(data)
 		self.heistStatus = data --This does not need to be reset on host
+		self:heistStateTransition()
 		self:updateTagTextNext()
 	end)
 	jhud.net:hook("jhud.assault.pagersNR", function(data)

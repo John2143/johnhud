@@ -2,17 +2,33 @@ jhud = jhud or {}
 if not managers then return end
 for i,v in pairs(jhud) do
 	if type(v) == "table" and v.__cleanup then
-		pcall(v.__cleanup, jhud.carry)
+		pcall(v.__cleanup, v, jhud.carry)
 	end
 end
 jhud = {carry = jhud.carry}
+jhud.path = "mods/johnhud/" -- AHHH TODO
 jhud.debug = true
+--jhud.log = function(...)
+	--for i,v in ipairs{...} do
+		--io.write(tostring(v).."\t")
+	--end
+	--io.write("\n")
+--end
 jhud.log = function(...)
-	for i,v in ipairs{...} do
-		io.write(tostring(v).."\t")
-	end
-	io.write("\n")
+    local newtab = {}
+    for i, v in pairs{...} do
+        newtab[i] = tostring(v)
+    end
+	log(table.concat(newtab, " "))
 end
+jhud.log2 = function(...)
+	jhud.log(string.format(...))
+end
+jhud.dlog = function(...)
+	if not jhud.debug then return end
+	jhud.log("DEBUG: ", ...)
+end
+
 jhud.log("JohnHUD started.")
 table.hasValue = function(table, val)
 	for i,v in ipairs(table) do
@@ -52,12 +68,10 @@ jhud.createPanel = function()
 	return Overlay:gui():create_scaled_screen_workspace(jhud.resolution.x, jhud.resolution.y, 0, 0, jhud.resolution.x, jhud.resolution.y):panel{name = "workspace_panel"}
 end
 jhud.keyboard = Input:keyboard()
-jhud.log2 = function(...)
-	jhud.log(string.format(...))
-end
-jhud.dlog = function(...)
-	if not jhud.debug then return end
-	jhud.log("DEBUG: ",...)
+
+jhud.die = function(err)
+    if err then jhud.log(err) end
+    (nil)()
 end
 
 function jhud.localPlayer()
@@ -104,8 +118,30 @@ function jhud.rmod(name)
 	end
 end
 
-dofile 'johnhud/jhopts.lua'--REP
-dofile 'johnhud/cfg.lua'--REP
+function jhud.require(e)
+    local path = jhud.path .. e .. ".lua"
+    if io.file_is_readable(path) then
+        local status, err = pcall(function() dofile(path) end)
+        if status then
+            return false
+        else
+            return err
+        end
+    else
+        return "Cannot read file"
+    end
+end
+
+function jhud.requirex(e)
+    local res = jhud.require(e)
+    if res then
+        jhud.log("Load failed " .. e)
+        jhud.die("  " .. res)
+    end
+end
+
+jhud.requirex("jhopts")
+jhud.requirex("cfg")
 
 jhud.cheating = jhud.options.cheat
 if jhud.cheating then
@@ -116,7 +152,8 @@ for i,v in ipairs(jhud.options.modules) do
 	if v and not jhud.options.disabledModules[v] then
 		jhud[v] = {config = jhud.options.m[v]}
 		this = jhud[v] --want to avoid setfenv in case of strange behaviour
-		dofile(string.format('johnhud/modules/%s.lua', v))
+        jhud.dlog("Loading module::" .. v)
+		jhud.requirex("modules/" .. v)
 	end
 end
 --E
@@ -137,8 +174,9 @@ for i,v in pairs(jhud.wantedModules) do
 	end
 end
 for i,v in pairs(jhud.requiredLibraries) do
-	dofile(string.format('johnhud/lib/%s.lua', v))
+	jhud.requirex("lib/" .. v)
 end
+jhud.log("Loaded modules")
 
 for i,v in pairs(jhud.options.modules) do --keep this to preserve module order
 	if jhud[v].__init then
@@ -147,13 +185,6 @@ for i,v in pairs(jhud.options.modules) do --keep this to preserve module order
 	end
 end
 
-jhud.lang = L:new("_")
-if jhud.chat and jhud.options.m._.showload then
-	jhud.chat(jhud.lang("start"))
-	if jhud.cheating then
-		jhud.chat(jhud.lang("cheater"))
-	end
-end
 jhud.hook("AchievementManager", "award_steam", function()
 	if jhud.cheating then return true end
 end)
@@ -164,3 +195,11 @@ jhud.hook("GameStateMachine", "update", function(GSMOBJ, t, dt)
 		jhud.callModuleMethod("__igupdate", t, dt)
 	end
 end)
+
+jhud.lang = L:new("_")
+if jhud.chat and jhud.options.m._.showload then
+	jhud.chat(jhud.lang("start"))
+	if jhud.cheating then
+		jhud.chat(jhud.lang("cheater"))
+	end
+end

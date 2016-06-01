@@ -99,16 +99,16 @@ function this:__init()
 			return true
 		end
 	end)
-	jhud.hook("BaseNetworkSession", "add_peer", function(bns, name, rpc, in_lobby, loading, synched, i, ...)------
-		jhud.callModuleMethod("__addpeer", i)
-		jhud.callModuleMethod("__postaddpeer", i)
-	end)
-	jhud.hook("BaseNetworkSession", "remove_peer", function(bns, peer, i, reason)------
-		jhud.callModuleMethod("__removepeer", i)
-		jhud.callModuleMethod("__postremovepeer", i)
+	jhud.hook("BaseNetworkSession", "add_peer", function(forward, returns)------bns, name, rpc, in_lobby, loading, synched, i, ...
+		jhud.callModuleMethod("__addpeer", unpack(returns))
+		jhud.callModuleMethod("__postaddpeer", unpack(returns))
+	end, jhud.hook.POSTHOOK)
+
+	jhud.hook("BaseNetworkSession", "remove_peer", function(forward, returns)------bns, peer, i, reason
+		jhud.callModuleMethod("__removepeer", unpack(returns))
+		jhud.callModuleMethod("__postremovepeer", unpack(returns))
 	end)
 end
-
 
 this._joinchar = "|"
 

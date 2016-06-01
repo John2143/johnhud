@@ -1,23 +1,24 @@
-jhud.options= {
+jhud.log("Loading options")
+jhud.options = {
 	modules = { --This is the list of modules that get loaded
 				-- words in parenthesis are required modules
 		"language",		--[REQUIRED]
-		"hook",			--[REQUIRED]
-		"net",			--[REQUIRED]
-		"suspct",		-- Shows suspicion percentages
-		"bind",			-- Allows you to bind keys
-		"assault",		--[RECCOMENDED] Gives heist status at the top of the screen
+        "hook",			--[REQUIRED]
+        "net",			--[REQUIRED]
+        "suspct",		-- Shows suspicion percentages
+        "bind",			-- Allows you to bind keys
+        "assault",		--[RECCOMENDED] Gives heist status at the top of the screen
 						--	!!Instead of disabling this, simply change both of the showdurings to false
 						--    This will let people with the mod in your lobby still have the indicator
-		"chat",			-- disabling this will disable johnhud from printing to your chat
-		"voice",		-- (bind) Allows you to bind keys for voicelines
-		"infamy",		-- Internal infamy stuff
-		"admin",		--TODO
-		"player",
-		"autoupdate",
-		"preplanning",
---		"mutate",
-		"summary",
+        "chat",			-- disabling this will disable johnhud from printing to your chat
+        "voice",		-- (bind) Allows you to bind keys for voicelines
+        "infamy",		-- Internal infamy stuff
+        "admin",		--TODO
+        "player",
+        --"autoupdate",
+        "preplanning",
+        --"mutate",
+--		"summary",
 --		"gamehud",
 --		"pd2stats",
 	},

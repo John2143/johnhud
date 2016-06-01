@@ -1,0 +1,34 @@
+{
+	"name": "JohnHUD",
+	"description": "HUD and stuff",
+	"author": "John2143",
+	"contact": "john@john2143.com",
+	"version": "v0.1",
+	"priority": 500,
+	"persist_scripts": [
+		{
+			"global": "jhud",
+			"script_path": "main.lua"
+		}
+	],
+	"keybinds": [
+		{
+			"keybind_id": "Reload JohnHUD",
+			"name": "Reload JohnHUD",
+			"description": "Reload JohnHUD",
+			"script_path": "main.lua",
+			"run_in_menu": true,
+			"run_in_game": true,
+			"localized": false
+		},
+		{
+			"keybind_id": "test",
+			"name": "test",
+			"description": "test",
+			"script_path": "test.lua",
+			"run_in_menu": true,
+			"run_in_game": true,
+			"localized": false
+		}
+	]
+}

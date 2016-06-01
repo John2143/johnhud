@@ -1,13 +1,13 @@
-require("johnhud/language/"..jhud.options.language..".lua")
+jhud.requirex("language/" .. jhud.options.language)
 this._ = LOADLANGUAGE()
 this.isEN = jhud.options.language == "EN"
 if not this.isEN then
-	require("johnhud/language/EN.lua")
+	jhud.requirex("language/EN")
 	this._ENG = LOADLANGUAGE()
 end
 LOADLANGUAGE = nil
 
-jhud.log(jhud.options.language.." loaded.")
+jhud.log(jhud.options.language .. " loaded.")
 
 setmetatable(this,{
 	__call = function(_, ...)
