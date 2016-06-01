@@ -15,10 +15,10 @@ jhud.options = {
         "infamy",       -- Internal infamy stuff
         "admin",        --TODO
         "player",
-        --"autoupdate",
+--      "autoupdate",
         "preplanning",
-        --"mutate",
---      "summary",
+--      "mutate",
+         "summary",
 --      "gamehud",
 --      "pd2stats",
     },
