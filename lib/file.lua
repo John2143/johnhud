@@ -3,6 +3,9 @@ local splitnoval = ""
 local val = "="
 local tstart = "{"
 local tend = "}"
+
+local dataDirectory = "mods/saves/johnhud/"
+
 local ttv = {
     number = function(a)
         return tostring(a)
@@ -45,16 +48,16 @@ local function write(h, tab)
     end
 end
 jhud.save = function(path, tab)
-    local handle = io.open("johnhud/data/"..path, "w")
+    local handle = io.open(dataDirectory .. path, "w")
     if not handle then return false end
     write(handle, tab)
     handle:close()
     return true
 end
 jhud.load = function(path)
-    local handle = io.open("johnhud/data/"..path, "r")
+    local handle = io.open(dataDirectory .. path, "r")
     if not handle then return {}, true end
-    local func = loadstring(table.concat{"RETURN = {",handle:read("*all"), "}"})
+    local func = loadstring(table.concat{"RETURN = {", handle:read("*all"), "}"})
     handle:close()
     local ret = {}
     setfenv(func, ret)

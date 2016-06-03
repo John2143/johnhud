@@ -126,7 +126,7 @@ function this:renameSkillTree(id, new)
     self:saveTrees()
     self:saveTree(new, id)
 end
-local path = "skilltree_"
+local path = "skilltree/"
 function this:loadTree(name)
     return jhud.load(path..name)
 end

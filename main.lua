@@ -16,7 +16,7 @@ jhud.debug = true
 --end
 jhud.log = function(...)
     local newtab = {}
-    for i, v in pairs{...} do
+    for i, v in ipairs{...} do
         newtab[i] = tostring(v)
     end
     log(table.concat(newtab, " "))
@@ -71,7 +71,7 @@ jhud.keyboard = Input:keyboard()
 
 jhud.die = function(err)
     if err then jhud.log(err) end
-    (nil)()
+    error("Die", 2)
 end
 
 function jhud.localPlayer()
