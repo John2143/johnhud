@@ -95,6 +95,10 @@ function this:heistStateTransition()
             self:marksIn()
         end
     end)
+    if not jhud.whisper and self.calling then
+        self.calling = 0
+        jhud.net:send("jhud.assault.calling", self.calling)
+    end
 end
 
 function this:addAnim(anim)
