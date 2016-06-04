@@ -116,12 +116,24 @@ function this:asNetMethod(typ, ...)
     return typ..","..table.concat(..., ",")
 end
 
+this.serialize = {
+    color = function(x)
+        return ("%f %f %f %f"):format(x.r, x.g, x.b, x.a)
+    end,
+}
+this.deserialize = {
+    color = function(x)
+        local tab = x:split(" ")
+        return Color(tonumber(tab[4]), tonumber(tab[1]), tonumber(tab[2]), tonumber(tab[3]))
+    end,
+}
+
 function this:sendPure(to, ...)
     if not(managers.network or managers.network:session()) then return false end
     local send =
         "jhud"..self._joinchar..
         to..self._joinchar..
-        table.concat({...},self._joinchar)
+        table.concat({...}, self._joinchar)
     managers.network:session():send_to_peers_ip_verified("send_chat_message", 4, send) --4 isnt shown to chat
     return true
 end

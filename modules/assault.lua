@@ -12,7 +12,7 @@ function this:getHeistStatus()
         local assault = managers.groupai:state()._task_data.assault
         if assault.phase then
             jhud.assault.assaultWaveOccurred = true
-            return assault.phase
+            return assault.phase, assault.phase_end_t
         else
             if jhud.whisper then
                 local state = 0
@@ -28,17 +28,21 @@ function this:getHeistStatus()
                 if self.uncool > 0 then max(self.config.danger.uncool) end
                 if self.uncoolstanding > 0 then max(self.config.danger.uncoolstanding) end
                 if self.caution > 0 then max(self.config.danger.questioning) end
-                return cautda[state]
+                return cautda[state], -1
             elseif jhud.assault.assaultWaveOccurred then
-                return "control"
+                return "control", -1
             else
-                return "compromised"
+                return "compromised", -1
             end
         end
     else
         jhud.assault.assaultWaveOccurred = false
-        return "none"
+        return "none", -1
     end
+end
+
+function this:getKillsLeft()
+    return -1
 end
 
 --TODO make these not temporary
@@ -52,6 +56,7 @@ local markH = 4
 local animtime = 1/3
 local const = dramaH/100
 
+local textCenterDrama = dramaW/2 - 50
 
 local function nonlerpfunc(pct)
     return pct^(2/5)
@@ -95,21 +100,21 @@ function this:heistStateTransition()
             self:marksIn()
         end
     end)
-    if not jhud.whisper and self.calling then
-        self.calling = 0
-        jhud.net:send("jhud.assault.calling", self.calling)
-    end
+    if not jhud.whisper and self.calling then self.calling = 0 end
 end
 
 function this:addAnim(anim)
     table.insert(self.anims, anim)
 end
 
+function this:dramaDiffFunction(x)
+    self.dramafluff:set_x(x)
+    self.dramaamount:set_x(x + textCenterDrama)
+    self.dramapanel:set_x(x + buffer)
+end
+
 function this:dramaIn(tied)
-    self:addAnim(self:createAnim(function(x)
-        self.dramafluff:set_x(x)
-        self.dramapanel:set_x(x + buffer)
-    end, tied, animtime, -dramaW, dramaX, false))
+    self:addAnim(self:createAnim(function(x) self:dramaDiffFunction(x) end, tied, animtime, -dramaW, dramaX, false))
 end
 
 function this:marksIn(tied)
@@ -118,14 +123,12 @@ function this:marksIn(tied)
         for i,v in pairs(self.dramamarks) do
             v:set_x(x)
         end
+        self.dramatimer:set_x(x + textCenterDrama)
     end, tied, animtime, -dramaW, dramaX + markbuffer, false))
 end
 
 function this:dramaOut(tied)
-    self:addAnim(self:createAnim(function(x)
-        self.dramafluff:set_x(x)
-        self.dramapanel:set_x(x + buffer)
-    end, tied, animtime, dramaX, -dramaW, false))
+    self:addAnim(self:createAnim(function(x) self:dramaDiffFunction(x) end, tied, animtime, dramaX, -dramaW, false))
 end
 
 function this:marksOut(tied)
@@ -137,16 +140,17 @@ function this:marksOut(tied)
         for i,v in pairs(self.dramamarks) do
             v:set_x(x)
         end
+        self.dramatimer:set_x(x + textCenterDrama)
     end, tied, animtime, dramaX + markbuffer, -dramaW, false))
 end
 
 function this:createMarks(marks)
-    for i,v in pairs(self.dramamarks or {}) do
+    for i,v in ipairs(self.dramamarks or {}) do
         v:hide() --TODO find if theres a panel:destroy()
     end
     self.dramamarks = {}
     for i,v in ipairs(marks) do
-        local mark= jhud.createPanel()
+        local mark = jhud.createPanel()
         mark:set_x(-300)
         mark:set_y(dramaY - buffer - const*v.amt + markH/2)
         mark:set_w(dramaW - 2*markbuffer)
@@ -160,20 +164,32 @@ function this:createMarks(marks)
         }
         table.insert(self.dramamarks, mark)
     end
+
+    --self.dramatimer:set_visible(marks.timer)
+    --if marks.timerhostage and (managers.groupai:state():hostage_count() or 0) > 0 then
+        --self.dramaEndTime = self.t + marks.timerhostage
+    --elseif marks.timer then
+        --self.dramaEndTime = self.t + marks.timer
+    --else
+        --self.dramaEndTime = nil
+    --end
 end
 
 local lastStatus
 local lastCasing = false
 local lastCalling
-local callingText = L("assault","calling")
 local lastUncool
 local lastUncoolStanding
 local doUpdate = true
 local lastWhisper = true
 local lastDrama, lastDiff
+local lastEndTime, lastKillsLeft
 
 function this:updateTag(t, dt)
-    self.heistStatus = self:getHeistStatus() or self.heistStatus
+    if jhud.net:isServer() then
+        self.heistStatus, self.dramaEndTime = self:getHeistStatus()
+        self.killsLeft = self:getKillsLeft()
+    end
     local isCasing = managers.hud and managers.hud._hud_assault_corner._casing
     if self.heistStatus ~= "none" then
         if not self.panel then
@@ -199,6 +215,7 @@ function this:updateTag(t, dt)
                 color = self.config.calling.color,
                 font = tweak_data.hud_present.text_font,
                 font_size = tweak_data.hud_present.text_size  + self.config.calling.text_size,
+                text = L("assault", "calling")
             }
 
             dramaY = (jhud.resolution.y)/2 + 25
@@ -226,6 +243,46 @@ function this:updateTag(t, dt)
                 halign = "scale",
                 valign = "scale"
             }
+
+            self.dramaamount = jhud.createPanel()
+            self.dramaamount:set_x(-300)
+            self.dramaamount:set_y(dramaY + 1 * buffer)
+            self.dramaamount:set_w(100)
+            self.dramaamount:set_h(400)
+            self.dramaamounttext = self.dramaamount:text{
+                name = "dramaamount",
+                align = "center",
+                color = Color("6600fa"),
+                font = tweak_data.hud_present.text_font,
+                font_size = tweak_data.hud_present.text_size,
+            }
+
+            self.dramatimer = jhud.createPanel()
+            self.dramatimer:set_x(-300)
+            self.dramatimer:set_y(dramaY + 2 * buffer + tweak_data.hud_present.text_size)
+            self.dramatimer:set_w(100)
+            self.dramatimer:set_h(400)
+            self.dramatimertext = self.dramatimer:text{
+                name = "dramaimer",
+                align = "center",
+                color = Color("6600fa"),
+                font = tweak_data.hud_present.text_font,
+                font_size = tweak_data.hud_present.text_size,
+            }
+
+            self.killsleftpanel= jhud.createPanel()
+            self.killsleftpanel:set_x(-300)
+            self.killsleftpanel:set_y(dramaY + 3 * buffer + 2 * tweak_data.hud_present.text_size)
+            self.killsleftpanel:set_w(100)
+            self.killsleftpanel:set_h(400)
+            self.killsleftpaneltext = self.killsleftpanel:text{
+                name = "killsleft",
+                align = "center",
+                color = Color("ffffff"),
+                font = tweak_data.hud_present.text_font,
+                font_size = tweak_data.hud_present.text_size,
+            }
+
             self:setDramaSlider(100)
         end
         if jhud.net:isServer() then
@@ -262,8 +319,25 @@ function this:updateTag(t, dt)
                 lastWhisper = jhud.whisper
                 jhud.net:send("jhud.assault.whisperState", jhud.whisper and 1 or 0)
             end
+            if lastEndTime ~= self.dramaEndTime then
+                lastEndTime = self.dramaEndTime
+                jhud.net:send("jhud.assault.timer", self.dramaEndTime)
+            end
+            if lastKillsLeft ~= self.killsLeft then
+                lastKillsLeft = self.killsLeft
+                jhud.net:send("jhud.assault.killsLeft", self.killsLeft)
+            end
         end
         if doUpdate then self:updateTagText() end
+        if self.dramaEndTime then
+            local tl = self.dramaEndTime - t
+            if tl > 0 then
+                local tlReadable = ("%.2f"):format(tl)
+                self.dramatimertext:set_text(tlReadable)
+            else
+                self.dramatimertext:set_text("")
+            end
+        end
         doUpdate = false
     else
         lastStatus = nil
@@ -320,6 +394,11 @@ function this:updateTagText()
             text = text.." "..self.diff..(jhud.chat and jhud.chat.icons.Skull or "D")
         end
     end
+
+    if self.config.showhostageskilled and managers.groupai:state()._hostages_killed and managers.groupai:state()._hostages_killed > 0 then
+        text = text.." "..managers.groupai:state()._hostages_killed.."C"
+    end
+
     if self.config.uppercase then
         text = L:affix(text:upper())
     end
@@ -337,10 +416,11 @@ function this:updateDangerData(t, dt)
     self.uncool = 0
     self.uncoolstanding = 0
     self.caution = 0
+
     self.calling = 0
     if managers.groupai and managers.groupai:state() and managers.groupai:state()._suspicion_hud_data then
 
-        local isECM= false
+        local isECM = false
         for i,v in pairs(managers.groupai:state()._ecm_jammers) do isECM = true break end
 
         for i,v in pairs(managers.groupai:state()._suspicion_hud_data) do
@@ -363,12 +443,14 @@ end
 function this:updateAssault(t, dt)
     local gai = managers.groupai:state()
     self.drama = gai._drama_data and math.floor(gai._drama_data.amount*100)
+    self.dramaamounttext:set_text(tostring(self.drama))
     self.diff = gai._difficulty_value and math.floor(gai._difficulty_value*10)
 end
 
 
 function this:__igupdate(t, dt)
     if not managers then return end
+    self.t = t
     if jhud.net:isServer() then
         if jhud.whisper then
             self:updateDangerData(t, dt)
@@ -395,21 +477,34 @@ function this:__cleanup(carry)
     c.textpanel:text("")
     c.callpanel:text("")
 end
+
 function this:__init(carry)
     local controlData = {
+        next = "anticipation",
         {amt = 0, len = 10, color = self.config.color.build},
     }
     self.dramaData = {
         fade = {
+            timer = tweak_data.group_ai.street.assault.fade_duration,
+            next = "control",
             {amt = 0, len = 25, color = self.config.color.control},
         },
         control = controlData, --lasts 15 seconds
         compromised = controlData,
-        sustain = nil,
+        sustain = {
+            next = "fade"
+        },
         anticipation = { --lasts 30 seconds, 40 seconds on dw, 60 if hostage
+            next = "build",
+            timer =
+                Global.game_settings.difficulty == "overkill_290" and 40
+                or 30,
+            timerhostage = 60,
             {amt = 95, len = 5, color = self.config.color.build}
         },
         build = {--lasts 35 seconds
+            next = "sustain",
+            timer = 35,
             {amt = 95, len = 5, color = self.config.color.sustain}
         },
     }
@@ -450,7 +545,6 @@ function this:__init(carry)
     jhud.net:hook("jhud.assault.calling", function(data)
         if not self.calltext then return end
         self.calltext:set_visible(tonumber(data) > 0 and self.config.showcalling)
-        self.calltext:set_text(callingText)
     end)
     jhud.net:hook("jhud.assault.standing", function(data)
         self.uncoolstanding = tonumber(data)
@@ -476,6 +570,17 @@ function this:__init(carry)
     jhud.net:hook("jhud.assault.diff", function(data)
         self.diff = tonumber(data)
         self:updateTagTextNext()
+    end)
+    jhud.net:hook("jhud.assault.diff", function(data)
+        self.diff = tonumber(data)
+        self:updateTagTextNext()
+    end)
+    jhud.net:hook("jhud.assault.timer", function(time)
+        self.dramaEndTime = tonumber(time)
+        self.dramatimertext:set_color(self.config.color[(self.dramaData[self.heistStatus] or {}).next or "none"] or Color("ffffff"))
+    end)
+    jhud.net:hook("jhud.assault.killsLeft", function(data)
+        self.killsLeft = tonumber(data)
     end)
 end
 function this:__addpeer(id)

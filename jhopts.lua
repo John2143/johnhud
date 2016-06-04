@@ -83,9 +83,10 @@ jhud.options = {
                 questioning = 0,--Someone is being detected
                 nopagers = 3,   --More than 4 pagers required
             },
-            
+
             showdiff = true,    --Show internal difficulty
-            showdrama = true,   --Show internal drama percent
+            showdrama = false,   --Show internal drama percent
+            showhostageskilled = true,   --Show number of hostages killed
 
             showpagers = true,  --Show the #pagers in the indicator
             showpagersleft = true,  --Show the number of pagers that you can use

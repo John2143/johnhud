@@ -88,12 +88,17 @@ function jhud.addCheatModule(tab)
         table.insert(jhud.options.cheaterModules, v)
     end
 end
+
+local errorMethods = {}
 function jhud.callModuleMethod(method, ...)
     for i,v in pairs(jhud) do
-        if type(v) == "table" and type(v[method]) == "function" then
+        if type(v) == "table" and type(v[method]) == "function" and not errorMethods[i] then
             if method == "__init" then _("INITING ", i) end
             local suc, err = pcall(v[method], v, ...)
-            if not suc then jhud.log("ERROR @", method, err) end
+            if not suc then
+                jhud.log("ERROR @", method, err)
+                errorMethods[i] = true
+            end
         end
     end
 end
