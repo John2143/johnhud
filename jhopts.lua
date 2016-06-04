@@ -26,6 +26,7 @@ jhud.options = {
     cheaterModules = {
         "wallhack",     -- Bind a key to see enemies through walls
     },
+    disabledModules = {},
     language = "EN",
     m = {
         _ = {
@@ -127,4 +128,8 @@ jhud.options = {
             useRoman = false --Use roman numerals in the rank strings like before infamy2
         }
     }
+}
+jhud.binds = {
+    voice = {},
+    bainlines = {}
 }
