@@ -123,8 +123,7 @@ function jhud.rmod(name)
     end
 end
 
-function jhud.require(e)
-    local path = jhud.path .. e .. ".lua"
+function jhud.requireSTD(path)
     if io.file_is_readable(path) then
         local status, err = pcall(function() dofile(path) end)
         if status then
@@ -137,6 +136,10 @@ function jhud.require(e)
     end
 end
 
+function jhud.require(e)
+    return jhud.requireSTD(jhud.path .. e .. ".lua")
+end
+
 function jhud.requirex(e)
     local res = jhud.require(e)
     if res then
@@ -146,7 +149,7 @@ function jhud.requirex(e)
 end
 
 jhud.requirex("jhopts")
-jhud.requirex("cfg")
+jhud.require("mods/saves/johnhud/cfg.lua")
 
 jhud.cheating = jhud.options.cheat
 if jhud.cheating then
