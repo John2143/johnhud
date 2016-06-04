@@ -177,7 +177,7 @@ end
 
 local lastStatus
 local lastCasing = false
-local lastCalling
+local lastCalling = -1
 local lastUncool
 local lastUncoolStanding
 local doUpdate = true
@@ -217,6 +217,7 @@ function this:updateTag(t, dt)
                 font_size = tweak_data.hud_present.text_size  + self.config.calling.text_size,
                 text = L("assault", "calling")
             }
+            self.calltext:set_visible(false)
 
             dramaY = (jhud.resolution.y)/2 + 25
             self.dramafluff = jhud.createPanel()
@@ -443,7 +444,9 @@ end
 function this:updateAssault(t, dt)
     local gai = managers.groupai:state()
     self.drama = gai._drama_data and math.floor(gai._drama_data.amount*100)
-    self.dramaamounttext:set_text(tostring(self.drama))
+    if self.dramaamounttext then
+        self.dramaamounttext:set_text(tostring(self.drama))
+    end
     self.diff = gai._difficulty_value and math.floor(gai._difficulty_value*10)
 end
 
@@ -543,7 +546,7 @@ function this:__init(carry)
         self:updateTagTextNext()
     end)
     jhud.net:hook("jhud.assault.calling", function(data)
-        if not self.calltext then return end
+        if not self.calltext or not tonumber(data) then return end
         self.calltext:set_visible(tonumber(data) > 0 and self.config.showcalling)
     end)
     jhud.net:hook("jhud.assault.standing", function(data)

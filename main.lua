@@ -149,7 +149,7 @@ function jhud.requirex(e)
 end
 
 jhud.requirex("jhopts")
-jhud.require("mods/saves/johnhud/cfg.lua")
+jhud.requireSTD("mods/saves/johnhud/cfg.lua")
 
 jhud.cheating = jhud.options.cheat
 if jhud.cheating then
