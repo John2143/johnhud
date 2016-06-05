@@ -15,7 +15,7 @@ jhud.options = {
         "infamy",       -- Internal infamy stuff
         "admin",        --TODO
         "player",
---      "autoupdate",
+        "autoupdate",
         "preplanning",
 --      "mutate",
          "summary",
@@ -126,6 +126,11 @@ jhud.options = {
         },
         infamy = {
             useRoman = false --Use roman numerals in the rank strings like before infamy2
+        },
+        autoupdate = {
+            uname = "John2143658709",
+            project = "johnhud",
+            branch = "dev",
         }
     }
 }

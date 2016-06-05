@@ -1,12 +1,13 @@
 jhud = jhud or {}
+jhud.carry = jhud.carry or {}
+
 if not managers then return end
 for i,v in pairs(jhud) do
     if type(v) == "table" and v.__cleanup then
         pcall(v.__cleanup, v, jhud.carry)
     end
 end
-jhud = {carry = jhud.carry}
-jhud.path = "mods/johnhud/" -- AHHH TODO
+jhud.path = PersistScriptPath
 jhud.debug = true
 --jhud.log = function(...)
     --for i,v in ipairs{...} do

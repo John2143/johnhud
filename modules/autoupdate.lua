@@ -1,143 +1,146 @@
 jhud.rmod("chat")
-this.vconf = {}
 
-this.vconfdef = {
-    uname = "John2143658709",
-    project = "johnhud",
-    branch = "master",
-}
+local mod = jhud.path .. "2" --Placeholder
+local versionFile = mod .. "/version.txt"
+jhud.log("Mod directory: " .. mod)
 
-function this:default()
-    for i,v in pairs(self.vconfdef) do
-        self.vconf[i] = v
-    end
+function this:getLatestCommit(cb)
+    Steam:http_request("https://api.github.com/repos/" ..
+                self.config.uname .. "/" ..
+                self.config.project .. "/commits?sha=" ..
+                self.config.branch, function(suc, data)
+        if not suc then return end
+        local commits = json.decode(data)
+        cb(commits[1].sha)
+    end)
 end
 
-this.ignore = {
-    "cfg.lua",
-    "version",
-}
+function this:downloadAndUnpack(cb)
+    dohttpreq("http://github.com/" ..
+                self.config.uname .. "/" ..
+                self.config.project .. "/archive/" ..
+                self.config.branch .. ".zip", function(data, suc)
 
-this.URLz = "https://codeload.github.com/%s/%s/zip/%s"
-this.URLn = "https://raw.githubusercontent.com/%s/%s/%s/%s"
-this.sepchar = "\n"
-this.eqchar = "="
+        if not suc then return end
+        local path = "mods/downloads/johnhud"
+        local zipPath = path .. ".zip"
+        local out = io.open(zipPath, "wb")
+        if not out then return true end
+        out:write(data)
+        out:close()
 
-function this:format(url, file)
-    return string.format(url, self.vconf.uname, self.vconf.project, self.vconf.branch, file or "")
+        --local function rcopy(from, to)
+            --local function mkdir(x)
+                --os.execute('mkdir "' .. x .. '"')
+            --end
+            --local function copyFile(f, t)
+                --log("copy " .. '"' .. f .. '" "' .. t ..'"')
+            --end
+            --local function recurseDo(path)
+                --path = path or "/"
+                --for i,v in pairs(file.GetDirectories(from .. path)) do
+                    --recurseDo(path .. v .. "/")
+                    --mkdir(to .. path .. v)
+                --end
+                --for i,v in pairs(file.GetFiles(from .. path)) do
+                    --copyFile(from .. path .. v, to .. path .. v)
+                --end
+            --end
+            --if file.DirectoryExists(to) then
+                --jhud.log("Removed old directory @ " ..  to)
+                --os.execute("rd /s /q \"" .. to .. "\"")
+            --end
+            --mkdir(to)
+            --recurseDo()
+        --end
+        local function deletedir(dir)
+            os.execute("rd /S /Q \"" .. dir .. "\"")
+        end
+        local function delete(f)
+            log("del /q " .. f .. "")
+
+            os.execute("del /Q \"" .. f:gsub("/", "\\") .. "\"")
+        end
+        local function rcopy(from, to)
+            os.execute('xcopy /E /I /Y "' .. from .. '" "' ..  to .. '"')
+        end
+
+        deletedir(mod)
+        unzip(zipPath, path)
+        delete(zipPath)
+        rcopy(path .. "/johnhud-" .. self.config.branch, mod)
+        deletedir(path)
+
+        cb()
+    end)
 end
 
-local pcall = pcall --pcall gets destryoed when a Steam:http_access function is run
-function this:parse(text)
-    local f = loadstring(text)
-    local ret = {}
-    setfenv(f, ret)
-    pcall(f)
-    return ret
+function this:getVersion()
+    if not io.file_is_readable(versionFile) then return "unknown" end
+    local verfile = io.open(versionFile, "r")
+    if not verfile then return "unknown" end
+    local version = verfile:read("*all")
+    verfile:close()
+    return version
 end
 
-function this:update(chat, args)
-    chat = chat or function() end
-    if not args.xcopyonly then
-        chat("UPDATE", jhud.lang("downloading"), jhud.chat.config.spare1)
-        self:dlunzip(chat)
-    end
-    if not args.dlonly then
-        chat("UPDATE", jhud.lang("applying"), jhud.chat.config.spare1)
-        self:xcopy(chat)
-    end
-    self.vconf.version = args.version
-    self:createVerFile()
+function this:newVersionFile(text)
+    local verfile = io.open(versionFile, "w")
+    jhud.log(verfile, "WOW")
+    if not verfile then return true end
+    verfile:write(text)
+    verfile:close()
 end
 
-function this:dlunzip(chat)
-    os.execute("cd johnhud && curl.exe "..self:format(self.URLz).." -k > archive.zip")
-    os.execute("rmdir /Q /S johnhud\\update")
-    os.execute("mkdir johnhud\\update")
-    os.execute("cd johnhud && 7za.exe x -oupdate/ archive.zip > nul")
-    os.execute("del johnhud\\archive.zip /Q")
-end
-function this:xcopy(chat)
-    local branchthing = "johnhud\\update\\" .. self.vconf.project .."-"..self.vconf.branch
-    jhud.log(branchthing)
-    for i,v in pairs(self.ignore) do
-        os.execute("del "..branchthing.."\\"..v)
-    end
-    os.execute("xcopy /e /y "..branchthing.." johnhud")
+function this:update(cb)
+    self:downloadAndUnpack(function(err)
+        if err then return cb(err) end
+        if self:newVersionFile(self.newVersion) then
+            return cb("Failed to create version file")
+        end
+        self.hashVersion = self.newVersion
+        self.newVersion = nil
+        cb(false)
+    end)
 end
 
 function this:__init()
     if not Steam or not Steam.http_request then return end
-    self:default()
-    local verfile = io.open("johnhud/version")
-    local vertab = self:parse(verfile:read("*all"))
-    verfile:close()
-    for i,v in pairs(vertab) do
-        self.vconf[i] = v
-    end
-    local url = self:format(self.URLn, "version")
-    jhud.dlog("Reqesting url", url)
-    Steam:http_request(url, function(success, data)
-        if not success then
-            jhud.dlog("error retreiving the github data")
-            return
-        else
-            jhud.dlog("got github data")
-            jhud.dlog("DATA", data)
-        end
-        local tab = self:parse(data)
 
-        if tab.version and tab.version ~= self.vconf.version then
-            jhud.chat("JHUD", jhud.lang("newver"):format(self.vconf.version or "?", tab.version or "?"), jhud.chat.config.spare1)
-            self.newavailable = tab.version
+    self.hashVersion = self:getVersion()
+
+    self:getLatestCommit(function(sh)
+        jhud.log("Version " .. self.hashVersion .. ". Newest Version " .. sh)
+        if self.hashVersion ~= sh then
+            self.newVersion = sh
+            if jhud.chat then
+                jhud.chat("UPDATE", "A new update is available for johnhud")
+                jhud.chat("UPDATE", "Type '/update' to update to version " .. sh:sub(1, 6))
+            end
         end
     end)
+
     jhud.chat:addCommand("update", function(chat, ...)
-        local flags = {
-            force = false,
-            dlonly = false,
-            xcopyonly = false,
-            version = self.newavailable or self.vconf.version
-        }
-        for i,v in pairs{...} do
-            if v == "-f" or v == "--force" then
-                flags.force = true
-            elseif v == "-d" or v == "--download-only" then
-                flags.dlonly = true
-            elseif v == "-c" or v == "--copy-only" then
-                flags.xcopyonly = true
-            end
-        end
-        if not self.newavailable and not flags.force then
-            chat("UPDATE", jhud.lang("nonewver"):format(self.vconf.version), jhud.chat.config.failed)
+        local args = {...}
+        if table.hasValue(args, "-f") then self.newVersion = self.hashVersion end
+        if self.newVersion then
+            chat("UPDATE", "Starting update... " .. self.hashVersion .. "->" .. self.newVersion, chat.config.spare1)
+            self:update(function(err)
+                if err then
+                    chat("UPDATE", "Update failed: " .. err, chat.config.failed)
+                else
+                    chat("UPDATE", "Update complete.", chat.config.spare2)
+                end
+            end)
         else
-            self:update(chat, flags)
+            chat("UPDATE", "There is no new update on the " .. self.config.branch .. " branch", chat.config.failed)
         end
     end)
-    jhud.chat:addCommand("updatedata", function(chat, ...)
-        local pure = false
-        for i,v in pairs{...} do
-            if v == "-r" or v == "--reset" then
-                self:default()
-                chat("UPDATE", chat.lang("resetdata"), chat.config.spare2)
-            elseif v == "-+" or v == "--next" then
-                self.vconf.version = math.floor(self.vconf.version + 1)
-                chat("UPDATE", chat.lang("valuechange"):format("version", self.vconf.version), chat.config.spare2)
-            elseif v == "-p" or v == "--pure" then
-                pure = true
-            else
-                local sp = v:split(":")
-                self.vconf[sp[1]] = sp[2] or self.vconfdef[sp[1]]
-                chat("UPDATE", chat.lang("valuechange"):format(sp[1], self.vconf[sp[1]]), chat.config.spare1)
-            end
-        end
-        chat("UPDATE", chat.lang(pure and "writepure" or "writeunpure"), chat.config.spare2)
-        self:createVerFile(pure)
-    end)
+
     jhud.chat:addCommand("version", function(chat, ...)
-        chat("Version", tostring(self.vconf.version), chat.config.spare1)
-        chat("Branch", tostring(self.vconf.branch), chat.config.spare1)
-        chat("Auhtor", tostring(self.vconf.uname), chat.config.spare1)
+        chat("Version", self.hashVersion:sub(1, 6), chat.config.spare1)
+        chat("Branch", self.config.branch, chat.config.spare1)
+        chat("Author", self.config.uname, chat.config.spare1)
     end)
 end
 
