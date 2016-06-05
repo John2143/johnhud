@@ -19,8 +19,8 @@ function this:getCommits(cb, force)
     end
 end
 
-function this:getLatestCommitHash(cb)
-    self:getCommits(function(commits) cb(commits[1].sha) end)
+function this:getLatestCommitHash(cb, force)
+    self:getCommits(function(commits) cb(commits[1].sha) end, force)
 end
 
 function this:downloadAndUnpack(cb)
@@ -121,7 +121,7 @@ function this:checkForUpdates(silent, cb)
                 jhud.chat("UPDATE", self.lang("ud2"):format(self.config.branch, sh:sub(1, 6)), jhud.chat.config.spare3)
             end
         end
-    end)
+    end, true)
 end
 
 function this:__init()
