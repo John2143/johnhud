@@ -7,7 +7,7 @@ for i,v in pairs(jhud) do
         pcall(v.__cleanup, v, jhud.carry)
     end
 end
-jhud.path = PersistScriptPath
+jhud.path = PersistScriptPath or "mods/johnhud/"
 jhud.debug = true
 --jhud.log = function(...)
     --for i,v in ipairs{...} do

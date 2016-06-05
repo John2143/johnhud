@@ -6,66 +6,32 @@ local tend = "}"
 
 local dataDirectory = "mods/saves/johnhud/"
 
-local ttv = {
-    number = function(a)
-        return tostring(a)
-    end,
-    string = function(a)
-        return '"'..a..'"'
-    end,
-    boolean = function(a)
-        return a and "true" or "false"
+local function checkFileHeirarchy(directory)
+    local folders = directory:split("/")
+    for i = 1, #folders - 1 do
+        local tempPath = table.concat(folders, "/", 1, i)
+        log(tempPath)
+        if not file.DirectoryExists(tempPath) then
+            os.execute('mkdir "' .. tempPath .. '"')
+        end
     end
-}
-local tti = {
-    string = function(a)
-        return a
-    end
-}
+end
 
-local function safe(value, index)
-    local typ = type(value)
-    local def = ttv[typ]
-    if index then
-        if tti[typ] then
-            return tti[typ](value)
-        else
-            return L:affix(def(value))
-        end
-    else
-        return def(value) or "nil"
-    end
-end
-local function write(h, tab)
-    for i,v in pairs(tab) do
-        if type(v) == "table" then
-            h:write(safe(i, true)..val..tstart..splitnoval)
-            write(h, v)
-            h:write(tend..split)
-        else
-            h:write(safe(i, true)..val..safe(v, false)..split)
-        end
-    end
-end
 jhud.save = function(path, tab)
-    local handle = io.open(dataDirectory .. path, "w")
+    local fullPath = dataDirectory .. path
+    checkFileHeirarchy(fullPath)
+
+    local handle = io.open(fullPath, "w")
     if not handle then return false end
-    write(handle, tab)
+    handle:write(json.encode(tab) or "{}")
     handle:close()
     return true
 end
+
 jhud.load = function(path)
     local handle = io.open(dataDirectory .. path, "r")
     if not handle then return {}, true end
-    local func = loadstring(table.concat{"RETURN = {", handle:read("*all"), "}"})
+    local data = json.decode(handle:read("*all") or "{}")
     handle:close()
-    local ret = {}
-    setfenv(func, ret)
-    local suc, err = pcall(func)
-    if not suc then
-        jhud.log("LOADERR", err)
-        return {}, true
-    else
-        return ret.RETURN
-    end
+    return data
 end

@@ -118,7 +118,7 @@ function this:savePlan(name, plan)
     if name and plan then
         self.savedPlans[name] = plan
     end
-    jhud.save("pp/"..self:currentHeist(), self.savedPlans)
+    return jhud.save("pp/"..self:currentHeist(), self.savedPlans)
 end
 
 function this:loadPlans()
@@ -155,8 +155,12 @@ function this:__init(carry)
         if not name then return chat.MISSING_ARGUMENTS end
         if name == "__lastplan" then return chat("no") end
         local plan = self:parsePlan(selfonly)
-        self:savePlan(name, plan)
-        self:chatPlan(chat, name, plan, false)
+        if self:savePlan(name, plan) then
+            chat("PLAN", "Plan saved successfully")
+            self:chatPlan(chat, name, plan, false)
+        else
+            chat("PLAN", "Plan failed to save")
+        end
     end)
     jhud.chat:addCommand("prex", function(chat, ...)
         local name, printOnly
