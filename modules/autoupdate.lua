@@ -1,18 +1,26 @@
 jhud.rmod("chat")
 
-local mod = jhud.path .. "2" --Placeholder
+local mod = jhud.path --Placeholder
 local versionFile = mod .. "/version.txt"
-jhud.log("Mod directory: " .. mod)
 
-function this:getLatestCommit(cb)
-    Steam:http_request("https://api.github.com/repos/" ..
-                self.config.uname .. "/" ..
-                self.config.project .. "/commits?sha=" ..
-                self.config.branch, function(suc, data)
-        if not suc then return end
-        local commits = json.decode(data)
-        cb(commits[1].sha)
-    end)
+function this:getCommits(cb, force)
+    if force or not self.commits then
+        Steam:http_request("https://api.github.com/repos/" ..
+                    self.config.uname .. "/" ..
+                    self.config.project .. "/commits?sha=" ..
+                    self.config.branch, function(suc, data)
+            if not suc then return end
+            local commits = json.decode(data)
+            self.commits = commits
+            cb(commits)
+        end)
+    else
+        cb(self.commits)
+    end
+end
+
+function this:getLatestCommitHash(cb)
+    self:getCommits(function(commits) cb(commits[1].sha) end)
 end
 
 function this:downloadAndUnpack(cb)
@@ -76,9 +84,9 @@ function this:downloadAndUnpack(cb)
 end
 
 function this:getVersion()
-    if not io.file_is_readable(versionFile) then return "unknown" end
+    if not io.file_is_readable(versionFile) then return "unknwn" end
     local verfile = io.open(versionFile, "r")
-    if not verfile then return "unknown" end
+    if not verfile then return "unknwn" end
     local version = verfile:read("*all")
     verfile:close()
     return version
@@ -104,43 +112,69 @@ function this:update(cb)
     end)
 end
 
+function this:checkForUpdates(silent, cb)
+    self:getLatestCommitHash(function(sh)
+        if self.hashVersion ~= sh then
+            self.newVersion = sh
+            if jhud.chat and not silent then
+                jhud.chat("UPDATE", self.lang("ud1"), jhud.chat.config.spare3)
+                jhud.chat("UPDATE", self.lang("ud2"):format(self.config.branch, sh:sub(1, 6)), jhud.chat.config.spare3)
+            end
+        end
+    end)
+end
+
 function this:__init()
     if not Steam or not Steam.http_request then return end
 
-    self.hashVersion = self:getVersion()
+    self.lang = L:new("autoupdate")
 
-    self:getLatestCommit(function(sh)
-        jhud.log("Version " .. self.hashVersion .. ". Newest Version " .. sh)
-        if self.hashVersion ~= sh then
-            self.newVersion = sh
-            if jhud.chat then
-                jhud.chat("UPDATE", "A new update is available for johnhud")
-                jhud.chat("UPDATE", "Type '/update' to update to version " .. sh:sub(1, 6))
+    self.hashVersion = self:getVersion()
+    self:checkForUpdates()
+
+    jhud.chat:addCommand("update", function(chat, ...)
+        local args = {...}
+        local option = args[#args]
+        if option == "apply" then
+            if table.hasValue(args, "-f") then self.newVersion = self.hashVersion end
+            if self.newVersion then
+                chat("UPDATE", "Starting update... " .. self.hashVersion .. "->" .. self.newVersion, chat.config.spare1)
+                self:update(function(err)
+                    if err then
+                        chat("UPDATE", self.lang("upfail") .. err, chat.config.failed)
+                    else
+                        chat("UPDATE", self.lang("upsucc"), chat.config.spare2)
+                    end
+                end)
+            else
+                chat("UPDATE", self.lang("navailable"):format(self.config.branch) , chat.config.failed)
+            end
+        elseif option == "check" then
+            local silent = false
+            if table.hasValue(args, "-s") then silent = true end
+            self:checkForUpdates(silent)
+        elseif option == "view" then
+            local function viewUpdates()
+                self:getCommits(function(commits)
+                    for i = 1, 5 do
+                        chat("U" .. commits[i].sha:sub(1, 6),
+                             commits[i].commit.message,
+                             chat.config.spare3, false)
+                    end
+                end)
+            end
+            if table.hasValue(args, "-c") then
+                self:checkForUpdates(true, viewUpdates)
+            else
+                viewUpdates()
             end
         end
     end)
 
-    jhud.chat:addCommand("update", function(chat, ...)
-        local args = {...}
-        if table.hasValue(args, "-f") then self.newVersion = self.hashVersion end
-        if self.newVersion then
-            chat("UPDATE", "Starting update... " .. self.hashVersion .. "->" .. self.newVersion, chat.config.spare1)
-            self:update(function(err)
-                if err then
-                    chat("UPDATE", "Update failed: " .. err, chat.config.failed)
-                else
-                    chat("UPDATE", "Update complete.", chat.config.spare2)
-                end
-            end)
-        else
-            chat("UPDATE", "There is no new update on the " .. self.config.branch .. " branch", chat.config.failed)
-        end
-    end)
-
     jhud.chat:addCommand("version", function(chat, ...)
-        chat("Version", self.hashVersion:sub(1, 6), chat.config.spare1)
-        chat("Branch", self.config.branch, chat.config.spare1)
-        chat("Author", self.config.uname, chat.config.spare1)
+        chat(self.lang("version"), self.hashVersion:sub(1, 6), chat.config.spare1)
+        chat(self.lang("branch"), self.config.branch, chat.config.spare1)
+        chat(self.lang("author"), self.config.uname, chat.config.spare1)
     end)
 end
 

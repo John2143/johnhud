@@ -78,4 +78,14 @@ LOADLANGUAGE = function() return {
         aleader = "leader",
         someone = "Someone",
     },
+    autoupdate = {
+        upfail = "Update failed. ", --Space intentional for error message
+        upsucc = "Update complete.",
+        navailable = "There is no new update on the %s branch",
+        branch = "Branch",
+        version = "Version",
+        author = "Author",
+        ud1 = "A new update is available for johnhud",
+        ud2 = "Type '/update apply' to update to version %s-%s",
+    },
 } end
