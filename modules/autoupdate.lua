@@ -1,7 +1,7 @@
 jhud.rmod("chat")
 
 local mod = jhud.path --Placeholder
-local versionFile = mod .. "/version.txt"
+local versionFile = mod .. "version.txt"
 
 function this:getCommits(cb, force)
     if force or not self.commits then
@@ -65,18 +65,22 @@ function this:downloadAndUnpack(cb)
             os.execute("rd /S /Q \"" .. dir .. "\"")
         end
         local function delete(f)
-            log("del /q " .. f .. "")
-
             os.execute("del /Q \"" .. f:gsub("/", "\\") .. "\"")
         end
         local function rcopy(from, to)
-            os.execute('xcopy /E /I /Y "' .. from .. '" "' ..  to .. '"')
+            os.execute('mkdir "' .. to .. '"')
+            os.execute('%systemroot%\\System32\\robocopy /MOVE /E "' .. from .. '" "' ..  to .. '"')
         end
 
-        deletedir(mod)
+        jhud.log("Unzipping")
         unzip(zipPath, path)
+        jhud.log("Deleting zip")
         delete(zipPath)
+        jhud.log("Deleting old johnhud")
+        deletedir(mod)
+        jhud.log("Copying files")
         rcopy(path .. "/johnhud-" .. self.config.branch, mod)
+        jhud.log("Cleaning up")
         deletedir(path)
 
         cb()
