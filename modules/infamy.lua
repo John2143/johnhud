@@ -216,7 +216,7 @@ function this:__init(carry)
                     if not name then return chat.MISSING_ARGUMENTS end
                     local multi = {}
                     for i,v in pairs(self.st.skill_switches) do
-                        if v.name:lower():find(name:lower()) then
+                        if managers.skilltree:get_skill_switch_name(i):lower():find(name:lower()) then
                             setid = i
                             table.insert(multi, v.name)
                         end
@@ -242,7 +242,8 @@ function this:__init(carry)
                 else
                     if managers.job and
                         managers.job._global.current_job and
-                        managers.job._global.current_job.last_completed_stage ~= 0
+                        managers.job._global.current_job.last_completed_stage ~= 0 and
+                        not force
                     then
 
                         chat("SKSET", self.lang("betweendays"), chat.config.failed)

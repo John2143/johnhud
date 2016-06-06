@@ -591,7 +591,7 @@ function this:__init(carry)
     jhud.net:hook("jhud.assault.killsLeft", function(data)
         self.killsLeft = tonumber(data)
     end)
-    jhud.net:hook("jhud.assault.killsLeft", function(data)
+    jhud.net:hook("jhud.assault.hostagesKilled", function(data)
         self.hostagesKilled = tonumber(data) or 0
     end)
 end
@@ -599,6 +599,7 @@ function this:__addpeer(id)
     if not jhud.net:isServer() then return end
     jhud.net:send("jhud.assault.heistStatus", self.heistStatus)
     jhud.net:send("jhud.assault.pagersNR", self.pagersNR)
+    jhud.net:send("jhud.assault.hostagesKilled", self.hostagesKilled)
 end
 function this:updateTagTextNext()
     doUpdate = true
