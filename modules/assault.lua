@@ -463,12 +463,12 @@ function this:__igupdate(t, dt)
     if not managers then return end
     self.t = t
     if jhud.net:isServer() then
+        self.hostagesKilled = managers.groupai:state()._hostages_killed and managers.groupai:state()._hostages_killed or 0
         if jhud.whisper then
             self:updateDangerData(t, dt)
         else
             self:updateAssault(t, dt)
         end
-        self.hostagesKilled = managers.groupai:state()._hostages_killed and managers.groupai:state()._hostages_killed or 0
     end
     self:updateTag(t, dt)
     for i,v in ipairs(self.anims or {}) do
