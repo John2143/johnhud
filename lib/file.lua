@@ -10,11 +10,15 @@ local function checkFileHeirarchy(directory)
     local folders = directory:split("/")
     for i = 1, #folders - 1 do
         local tempPath = table.concat(folders, "/", 1, i)
-        log(tempPath)
         if not file.DirectoryExists(tempPath) then
-            os.execute('mkdir "' .. tempPath .. '"')
+            jhud.mkdir(tempPath)
         end
     end
+end
+
+jhud.mkdir = function(path)
+    if not path then return end
+    os.execute('mkdir "' .. path .. '"')
 end
 
 jhud.save = function(path, tab)

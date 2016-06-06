@@ -38,9 +38,6 @@ function this:downloadAndUnpack(cb)
         out:close()
 
         --local function rcopy(from, to)
-            --local function mkdir(x)
-                --os.execute('mkdir "' .. x .. '"')
-            --end
             --local function copyFile(f, t)
                 --log("copy " .. '"' .. f .. '" "' .. t ..'"')
             --end
@@ -58,7 +55,7 @@ function this:downloadAndUnpack(cb)
                 --jhud.log("Removed old directory @ " ..  to)
                 --os.execute("rd /s /q \"" .. to .. "\"")
             --end
-            --mkdir(to)
+            --jhud.mkdir(to)
             --recurseDo()
         --end
         local function deletedir(dir)
@@ -68,7 +65,7 @@ function this:downloadAndUnpack(cb)
             os.execute("del /Q \"" .. f:gsub("/", "\\") .. "\"")
         end
         local function rcopy(from, to)
-            os.execute('mkdir "' .. to .. '"')
+            jhud.mkdir(to)
             os.execute('%systemroot%\\System32\\robocopy /MOVE /E "' .. from .. '" "' ..  to .. '"')
         end
 
@@ -98,7 +95,6 @@ end
 
 function this:newVersionFile(text)
     local verfile = io.open(versionFile, "w")
-    jhud.log(verfile, "WOW")
     if not verfile then return true end
     verfile:write(text)
     verfile:close()

@@ -18,10 +18,6 @@ LOADLANGUAGE = function() return {
         trans_error = "Translation Error",
         affix_error = "Affixation Error",
         cheater = "Acheivements are disabled because you are cheating",
-        newver = "There is a new version of johnhud available (%s -> %s). Type '/update' when in a game to update.",
-        nonewver = "There is no new version available (using version %s)",
-        downloading = "Downloading...",
-        applying = "Applying...",
     },
     chat = {
         unknown = "Unknown command '%s'",
@@ -48,6 +44,8 @@ LOADLANGUAGE = function() return {
         notfound = "The plan '%s' was not found",
         toocostly = "You do not have enough favors to use this plan",
         verytoocostly = "This map does not have enough favors to use this plan",
+        plansaved = "Plan sucessfuly saved",
+        plansavefailed = "Plan failed to save",
     },
     skilltree = {
         newtree = "New skill tree",

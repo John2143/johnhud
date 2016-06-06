@@ -156,10 +156,10 @@ function this:__init(carry)
         if name == "__lastplan" then return chat("no") end
         local plan = self:parsePlan(selfonly)
         if self:savePlan(name, plan) then
-            chat("PLAN", "Plan saved successfully")
+            chat("PLAN", self.lang("plansaved"))
             self:chatPlan(chat, name, plan, false)
         else
-            chat("PLAN", "Plan failed to save")
+            chat("PLAN", self.lang("plansavefailed"))
         end
     end)
     jhud.chat:addCommand("prex", function(chat, ...)

@@ -184,6 +184,7 @@ local doUpdate = true
 local lastWhisper = true
 local lastDrama, lastDiff
 local lastEndTime, lastKillsLeft
+local lastCivsKilled
 
 function this:updateTag(t, dt)
     if jhud.net:isServer() then
@@ -191,6 +192,7 @@ function this:updateTag(t, dt)
         self.killsLeft = self:getKillsLeft()
     end
     local isCasing = managers.hud and managers.hud._hud_assault_corner._casing
+
     if self.heistStatus ~= "none" then
         if not self.panel then
             self.panel = jhud.createPanel()
@@ -328,6 +330,10 @@ function this:updateTag(t, dt)
                 lastKillsLeft = self.killsLeft
                 jhud.net:send("jhud.assault.killsLeft", self.killsLeft)
             end
+            if lastCivsKilled ~= self.hostagesKilled then
+                lastCivsKilled = self.hostagesKilled
+                jhud.net:send("jhud.assault.hostagesKilled", self.hostagesKilled)
+            end
         end
         if doUpdate then self:updateTagText() end
         if self.dramaEndTime then
@@ -338,6 +344,9 @@ function this:updateTag(t, dt)
             else
                 self.dramatimertext:set_text("")
             end
+        end
+        if self.dramaamounttext then
+            self.dramaamounttext:set_text(tostring(self.drama))
         end
         doUpdate = false
     else
@@ -396,8 +405,8 @@ function this:updateTagText()
         end
     end
 
-    if self.config.showhostageskilled and managers.groupai:state()._hostages_killed and managers.groupai:state()._hostages_killed > 0 then
-        text = text.." "..managers.groupai:state()._hostages_killed.."C"
+    if self.config.showhostageskilled and self.hostagesKilled > 0 then
+        text = text.." "..self.hostagesKilled.."C"
     end
 
     if self.config.uppercase then
@@ -414,6 +423,8 @@ function this:updateDangerData(t, dt)
         lastSucessfulPagerNR = self.pagersUsed
         self.pagersActive = self.pagersActive - 1
     end
+
+
     self.uncool = 0
     self.uncoolstanding = 0
     self.caution = 0
@@ -444,9 +455,6 @@ end
 function this:updateAssault(t, dt)
     local gai = managers.groupai:state()
     self.drama = gai._drama_data and math.floor(gai._drama_data.amount*100)
-    if self.dramaamounttext then
-        self.dramaamounttext:set_text(tostring(self.drama))
-    end
     self.diff = gai._difficulty_value and math.floor(gai._difficulty_value*10)
 end
 
@@ -460,6 +468,7 @@ function this:__igupdate(t, dt)
         else
             self:updateAssault(t, dt)
         end
+        self.hostagesKilled = managers.groupai:state()._hostages_killed and managers.groupai:state()._hostages_killed or 0
     end
     self:updateTag(t, dt)
     for i,v in ipairs(self.anims or {}) do
@@ -513,6 +522,7 @@ function this:__init(carry)
     }
     self.anims = {}
     self.uncool = 0
+
     --Number of pagers used
     --This number includes the number of pagers that will need to be used
     --ie: pagercop dies during ecm, this number get added to anyway
@@ -580,6 +590,9 @@ function this:__init(carry)
     end)
     jhud.net:hook("jhud.assault.killsLeft", function(data)
         self.killsLeft = tonumber(data)
+    end)
+    jhud.net:hook("jhud.assault.killsLeft", function(data)
+        self.hostagesKilled = tonumber(data) or 0
     end)
 end
 function this:__addpeer(id)
