@@ -5,15 +5,14 @@ end
 function this:normalSHD()
     local pcts = {}
     for x, k in pairs(managers.criminals._characters) do
-        if(k.peer_id) then
-            pcts[k.peer_id] = {[-1] = json.null}
+        if k.peer_id and k.peer_id > 0 then
+            pcts[k.peer_id] = {[-1] = 0}
         end
     end
     for i,v in pairs(self.shd) do
         for ii,vv in pairs(v.suspects or {}) do
             for x, k in pairs(managers.criminals._characters) do
                 if(vv.u_suspect == k.unit) then
-                    pcts[k.peer_id] = pcts[k.peer_id] or {}
                     table.insert(pcts[k.peer_id], vv.status)
                 end
             end
@@ -25,6 +24,7 @@ end
 local lastWhisper = true
 local textheight = 30
 local lastSuspicion = {}
+
 function this:__update(t, dt)
     if not (managers and managers.groupai and managers.groupai:state()) then return end
     --This relies on the fact that you can
@@ -63,11 +63,18 @@ function this:__update(t, dt)
 
             local oldAmounts = self.amounts
             self.amounts = self:normalSHD()
-            --local update = false
-            ----TODO Update check
-            --if update then
-                --jhud.net("jhud.suspct.amounts", jhud.serialize(self.amounts), true)
-            --end
+            local update = false
+            for i,v in pairs(oldAmounts) do
+                for x,k in ipairs(v) do
+                    if self.amounts[i][x] ~= k then
+                        update = true
+                    end
+                end
+            end
+            if update and self.lastUpdateT + self.diffT < t then
+                jhud.net("jhud.suspct.amounts", jhud.serialize(self.amounts), true)
+                self.lastUpdateT = t
+            end
         end
 
         local suspicionAmount = self.amounts[jhud.net:getPeerID()] or {}
@@ -88,8 +95,12 @@ function this:__update(t, dt)
     end
 end
 
+this.TICKRATE = 10
+
 function this:__init()
     self.amounts = {}
+    self.lastUpdateT = 0
+    self.diffT = 1 / self.TICKRATE
     if not jhud.net:isServer() then
         jhud.net:hook("jhud.suspct.amounts", function(data)
             self.amounts = jhud.deserialize(data)
