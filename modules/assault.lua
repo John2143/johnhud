@@ -405,7 +405,7 @@ function this:updateTagText()
         end
     end
 
-    if self.config.showhostageskilled and self.hostagesKilled > 0 then
+    if self.config.showhostageskilled and self.hostagesKilled and self.hostagesKilled > 0 then
         text = text.." "..self.hostagesKilled.."C"
     end
 
@@ -586,7 +586,9 @@ function this:__init(carry)
     end)
     jhud.net:hook("jhud.assault.timer", function(time)
         self.dramaEndTime = tonumber(time)
-        self.dramatimertext:set_color(self.config.color[(self.dramaData[self.heistStatus] or {}).next or "none"] or Color("ffffff"))
+        if(self.dramatimertext) then
+            self.dramatimertext:set_color(self.config.color[(self.dramaData[self.heistStatus] or {}).next or "none"] or Color("ffffff"))
+        end
     end)
     jhud.net:hook("jhud.assault.killsLeft", function(data)
         self.killsLeft = tonumber(data)

@@ -59,7 +59,7 @@ function this:emptySSTree()
     local ss = {}
     local zero = jhud.digest(0)
     for i = 1, 15 do
-        ss[i] = {points_spent = zero, unlocked = false}
+        ss[i] = {points_spent = zero, unlocked = true}
     end
     return ss
 end
