@@ -1,22 +1,27 @@
 local function pct(n)
     return math.floor(n*100)
 end
-function this:getSuspicion(sus, usr)
-    if not sus then return 1 end
-    if usr then
-        for i,v in pairs(sus) do
-            if v.u_suspect == usr then
-                return v.status
+
+function this:normalSHD()
+    local pcts = {}
+    for x, k in pairs(managers.criminals._characters) do
+        if(k.peer_id) then
+            pcts[k.peer_id] = {[-1] = json.null}
+        end
+    end
+    for i,v in pairs(self.shd) do
+        for ii,vv in pairs(v.suspects or {}) do
+            for x, k in pairs(managers.criminals._characters) do
+                if(vv.u_suspect == k.unit) then
+                    pcts[k.peer_id] = pcts[k.peer_id] or {}
+                    table.insert(pcts[k.peer_id], vv.status)
+                end
             end
         end
-    else
-        local most = 0
-        for k,x in pairs(sus) do
-            most = math.max(most,x.status)
-        end
-        return most
     end
+    return pcts
 end
+
 local lastWhisper = true
 local textheight = 30
 local lastSuspicion = {}
@@ -25,12 +30,9 @@ function this:__update(t, dt)
     --This relies on the fact that you can
     --never return to whisper after leaving
     if not lastWhisper then return end
-    self.shd = self.shd or managers.groupai:state()._suspicion_hud_data
-    if not self.shd then return end
 
     if not self.panel then
         local h = self.config.num*textheight
-        jhud.dlog("No panels")
         self.panel = jhud.createPanel()
         self.panel:set_x((jhud.resolution.x - 100)/2)
         self.panel:set_y((jhud.resolution.y - h)/2)
@@ -54,18 +56,22 @@ function this:__update(t, dt)
                 v:set_visible(jhud.whisper)
             end
             if not jhud.whisper then return end
-        end 
-        local suspicionAmount = {}
-        local osu = self.config.onlyshowyou
-        for i,v in pairs(self.shd) do
-            local sus = self:getSuspicion(v.suspects, osu and jhud.localPlayer())
-            if sus == 1 and not self.times[i] and not osu then
-                self.times[i] = t
-            end
-            if sus ~= 1 or self.times[i] and t < self.times[i] + self.config.show100for then
-                table.insert(suspicionAmount, sus)
-            end
         end
+
+        if jhud.net:isServer() then
+            self.shd = self.shd or managers.groupai:state()._suspicion_hud_data
+
+            local oldAmounts = self.amounts
+            self.amounts = self:normalSHD()
+            --local update = false
+            ----TODO Update check
+            --if update then
+                --jhud.net("jhud.suspct.amounts", jhud.serialize(self.amounts), true)
+            --end
+        end
+
+        local suspicionAmount = self.amounts[jhud.net:getPeerID()] or {}
+
         for i = 1, 5 do
             if suspicionAmount[i] then
                 self.textpanels[i]:set_text(pct(suspicionAmount[i]).."%")
@@ -83,5 +89,10 @@ function this:__update(t, dt)
 end
 
 function this:__init()
-    self.times = {}
+    self.amounts = {}
+    if not jhud.net:isServer() then
+        jhud.net:hook("jhud.suspct.amounts", function(data)
+            self.amounts = jhud.deserialize(data)
+        end)
+    end
 end

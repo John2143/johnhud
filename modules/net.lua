@@ -64,7 +64,7 @@ function this:__init()
             --  2   fdata2
             --unpack(dat)
             --  (fdata1, fdata2)
-            jhud.dlog("Network sync method called: ", dat[0], unpack(dat))
+            --jhud.dlog("Network sync method called: ", dat[0], unpack(dat))
             --more hacky unpacky
             --table.hasValue uses the ipairs method so it will ignore element 0
             --example netmethod

@@ -25,7 +25,7 @@ function jhud.pt(tab, deep, tabdepth)
         end
     end
     for i,v in pairs(tab) do
-        jhud.log(tabdepth, i .. string.rep(" ", longestindex - tostring(i):len()), "::", v)
+        jhud.log(tabdepth, tostring(i) .. string.rep(" ", longestindex - tostring(i):len()), "::", v)
         if deep and deep > 0 and type(v) == "table" then
             jhud.pt(v, deep - 1, tabdepth .. "  ")
         end

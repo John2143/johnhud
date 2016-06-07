@@ -21,6 +21,30 @@ jhud.mkdir = function(path)
     os.execute('mkdir "' .. path .. '"')
 end
 
+jhud.serialize = function(data)
+    return json.encode(data or "{}")
+end
+
+jhud.deserialize = function(data)
+    local tab = json.decode(data or "{}")
+
+    local function fixJSON(new, tab)
+        for i,v in pairs(tab) do
+            local index = tonumber(i) or i
+            if type(v) == "table" then
+                new[index] = {}
+                fixJSON(new[index], v)
+            else
+                new[index] = v
+            end
+        end
+    end
+
+    local new = {}
+    fixJSON(new, tab)
+    return new
+end
+
 jhud.save = function(path, tab)
     local fullPath = dataDirectory .. path
     checkFileHeirarchy(fullPath)
@@ -35,22 +59,7 @@ end
 jhud.load = function(path)
     local handle = io.open(dataDirectory .. path, "r")
     if not handle then return {}, true end
-    local data = json.decode(handle:read("*all") or "{}")
-
-    local function fixJSON(new, tab)
-        for i,v in pairs(tab) do
-            local index = tonumber(i) or i
-            if type(v) == "table" then
-                new[index] = {}
-                fixJSON(new[index], v)
-            else
-                new[index] = v
-            end
-        end
-    end
-    local newtab = {}
-    fixJSON(newtab, data)
-
+    local data = jhud.deserialize(handle:read("*all"))
     handle:close()
-    return newtab
+    return data
 end
