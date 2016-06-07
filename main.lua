@@ -15,6 +15,22 @@ jhud.debug = true
     --end
     --io.write("\n")
 --end
+function jhud.pt(tab, deep, tabdepth)
+    if not tab then return end
+    tabdepth = tabdepth or ""
+    local longestindex = 0
+    for i,v in pairs(tab) do
+        if tostring(i):len() > longestindex then
+            longestindex = tostring(i):len()
+        end
+    end
+    for i,v in pairs(tab) do
+        jhud.log(tabdepth, i .. string.rep(" ", longestindex - tostring(i):len()), "::", v)
+        if deep and deep > 0 and type(v) == "table" then
+            jhud.pt(v, deep - 1, tabdepth .. "  ")
+        end
+    end
+end
 jhud.log = function(...)
     local newtab = {}
     for i, v in ipairs{...} do

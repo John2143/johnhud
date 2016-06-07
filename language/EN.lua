@@ -46,6 +46,8 @@ LOADLANGUAGE = function() return {
         verytoocostly = "This map does not have enough favors to use this plan",
         plansaved = "Plan sucessfuly saved",
         plansavefailed = "Plan failed to save",
+        deleted = "Sucessfully deleted plan %s",
+        norecent = "There are no recently used plans",
     },
     skilltree = {
         newtree = "New skill tree",

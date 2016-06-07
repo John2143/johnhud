@@ -92,12 +92,13 @@ function this:enactPlan(plan, force, dovotes, doother)
 end
 
 function this:tryPlan(chat, p)
-    local err = self:enactPlan(p.plan, p.force, p.dovotes, p.doother)
+    local plan = self.savedPlans[p.name]
+    local err = self:enactPlan(plan, p.force, p.dovotes, p.doother)
     if err then
         chat("DOPLAN", self.lang(err), chat.config.failed)
         return false
     else
-        self:chatPlan(chat, p.name, p.plan, true, "DO")
+        self:chatPlan(chat, p.name, plan, true, "DO")
         return true
     end
 end
@@ -165,6 +166,7 @@ function this:__init(carry)
     jhud.chat:addCommand("prex", function(chat, ...)
         local name, printOnly
         local dovotes, doother, force = true, true, false
+        local delete = false
         for i,v in pairs{...} do
             if v == "-v" or v == "--vote-only" then
                 doother = false
@@ -174,19 +176,25 @@ function this:__init(carry)
                 printOnly = true
             elseif v == "-f" or v == "--force" then
                 force = true
+            elseif v == "-d" or v == "--delete" then
+                delete = true
             else
                 name = v
             end
         end
         if name then
-            local plan = self.savedPlans[name]
-            if not plan then chat("PLAN", self.lang("notfound"):format(name), chat.config.failed) return end
+            if not self.savedPlans[name] then chat("PLAN", self.lang("notfound"):format(name), chat.config.failed) return end
             if printOnly then
                 self:chatPlan(chat, name, plan, false, "P")
+            elseif delete then
+                if self.savedPlans.__lastplan == name then self.savedPlans.__lastplan = nil end
+                self.savedPlans[name] = nil
+                chat("PLAN", self.lang("deleted"):format(name))
+                self:savePlan()
             else
                 local planobj = {
                     name = name,
-                    plan = plan,
+                    --plan = plan,
                     force = force,
                     dovotes = dovotes,
                     doother = doother
@@ -196,8 +204,9 @@ function this:__init(carry)
                 self:tryPlan(chat, planobj)
             end
         else
+            jhud.pt(self.savedPlans)
             for i,v in pairs(self.savedPlans) do
-                self:chatPlan(chat, i, v, true)
+                if i ~= "__lastplan" then self:chatPlan(chat, i, v, true) end
             end
         end
     end)

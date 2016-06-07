@@ -36,6 +36,21 @@ jhud.load = function(path)
     local handle = io.open(dataDirectory .. path, "r")
     if not handle then return {}, true end
     local data = json.decode(handle:read("*all") or "{}")
+
+    local function fixJSON(new, tab)
+        for i,v in pairs(tab) do
+            local index = tonumber(i) or i
+            if type(v) == "table" then
+                new[index] = {}
+                fixJSON(new[index], v)
+            else
+                new[index] = v
+            end
+        end
+    end
+    local newtab = {}
+    fixJSON(newtab, data)
+
     handle:close()
-    return data
+    return newtab
 end
