@@ -5,13 +5,19 @@ local function pct(n)
     return math.floor(n*100)
 end
 
-function this:normalSHD()
-    local pcts = {}
+function this:createCriminalTable()
+    local tab = {}
     for x, k in pairs(managers.criminals._characters) do
         if k.peer_id and k.peer_id > 0 then
-            pcts[k.peer_id] = {[-1] = 0}
+            tab[k.peer_id] = {[-1] = 0}
         end
     end
+    tab.whisper = jhud.whisper
+    return tab
+end
+
+function this:normalSHD()
+    local pcts = self:createCriminalTable()
     for i,v in pairs(self.shd) do
         for ii,vv in pairs(v.suspects or {}) do
             for x, k in pairs(managers.criminals._characters) do
@@ -42,21 +48,7 @@ end
 function this:whisperDo(t, dt)
     if jhud.net:isServer() then
         self.shd = self.shd or managers.groupai:state()._suspicion_hud_data
-
-        local oldAmounts = self.amounts
-        self.amounts = self:normalSHD()
-        local update = false
-        for i,v in pairs(oldAmounts) do
-            for x,k in ipairs(v) do
-                if self.amounts[i][x] ~= k then
-                    update = true
-                end
-            end
-        end
-        if jhud.net and update and self.lastUpdateT + self.diffT < t then
-            jhud.net("jhud.suspct.amounts", jhud.serialize(self.amounts), true)
-            self.lastUpdateT = t
-        end
+        self:networkAmounts(self:normalSHD(), self.diffT, t)
     end
 
     local suspicionAmount = self.amounts[jhud.net:getPeerID()] or {}
@@ -79,11 +71,29 @@ function this:whisperDo(t, dt)
 end
 
 function this:associateUnitsWithIDs()
+    local update = false
+    if self.units then
+        for i,v in ipairs(managers.criminals._characters) do
+            if v.peer_id and v.unit then
+                if not self.units[v.peer_id] or self.units[v.peer_id].unit ~= v.unit then
+                    update = true
+                end
+            end
+        end
+    else update = true end
+
+    if not update then return end
+
+    jhud.log("refreshing units")
+    self:createHUDPanels()
     self.units = {}
     for i = 1, 4 do
         local d
-        for i,v in ipairs(managers.criminals._characters) do
-            if v.peer_id and v.peer_id ~= 0 then d = v break end
+        for k,v in ipairs(managers.criminals._characters) do
+            if v.peer_id == i then
+                jhud.log("found", i, v.peer_id, v.name)
+                d = v break
+            end
         end
         if d then
             self.units[i] = {unit = d.unit, dam = d.unit:character_damage()}
@@ -91,23 +101,70 @@ function this:associateUnitsWithIDs()
     end
 end
 
+function this:networkAmounts(newAmounts, rateLimit, t)
+    local oldAmounts = self.amounts
+    self.amounts = newAmounts
+    local update = false
+    for i,v in ipairs(oldAmounts) do
+        for x,k in pairs(v) do
+            if self.amounts[i][x] ~= k then
+                update = true
+            end
+        end
+    end
+    if jhud.net and update and rateLimit and (self.lastUpdateT + rateLimit) < t then
+        jhud.net("jhud.suspct.amounts", jhud.serialize(self.amounts), true)
+        self.lastUpdateT = t
+    end
+end
+
+local lastHasArmor = {}
+local function fmt(num)
+    return ("%.0f"):format(num)
+end
+
+local function floatEqual(a, b)
+    return math.abs(a - b) < .001
+end
+
 function this:loudDo(t, dt)
     if self.config.showHP then
-        if not self.units then self:associateUnitsWithIDs() end
-        for i,v in pairs(self.HUDPanels) do
-            if self.units[i] then
-                v.c:set_text(string.format("%.0f", self.units[i].dam:get_real_health() * 10))
-                --v.ca:set_text(self.units[i].dam:get_real_armor())
+        if jhud.net:isServer() then
+            self:associateUnitsWithIDs()
+            local amounts = self:createCriminalTable()
+            for i,v in pairs(self.units) do
+                amounts[i] = {}
+                amounts[i].hp = self.units[i].dam:get_real_health() * 10
+                amounts[i].armor = self.units[i].dam:get_real_armor() * 10
+                amounts[i].maxArmor = self.units[i].dam:_max_armor() * 10
+                amounts[i].maxHP = self.units[i].dam:_max_health() * 10
+            end
+            self:networkAmounts(amounts)
+            --jhud.pt(self.units, 2)
+            --jhud.pt(self.amounts, 4)
+        end
+        for i,v in ipairs(self.HUDPanels) do
+            local amt = self.amounts[i]
+            if amt then --should always be true
+                local hasArmor = --Actually show armor
+                    amt.armor > 0 and
+                    not floatEqual(amt.armor, amt.maxArmor)
+
+                if lastHasArmor[i] ~= hasArmor then
+                    lastHasArmor[i] = hasArmor
+                    v.c:set_color(hasArmor and Color("ffffff") or Color("00dd33"))
+                end
+                v.c:set_text(hasArmor and fmt(amt.armor) or fmt(amt.hp))
             end
         end
     end
 end
 
-local lastWhisper = true
+local lastWhisper
 local textheight = 30
 local lastSuspicion = {}
 
-function this:__update(t, dt)
+function this:__igupdate(t, dt)
     if not (managers and managers.groupai and managers.groupai:state()) then return end
     --This relies on the fact that you can
     --never return to whisper after leaving
@@ -116,21 +173,23 @@ function this:__update(t, dt)
         self:createPanels()
     end
     if self.textpanels then
-        if lastWhisper ~= jhud.whisper then
-            lastWhisper = jhud.whisper
+        local whisp = self.amounts.whisper
+        if lastWhisper ~= whisp then
+            self.units = nil
+            lastWhisper = whisp
             for i,v in pairs(self.textpanels) do
-                v:set_visible(jhud.whisper)
+                v:set_visible(whisp)
             end
             local showPanels =
-                jhud.whisper and self.config.showDetection or
-                not jhud.whisper and self.config.showHP
+                whisp and self.config.showDetection or
+                not whisp and self.config.showHP
 
             for i,v in pairs(self.HUDPanels) do
                 v.c:set_visible(showPanels)
                 v.c:set_color(Color("00aa33"))
             end
         end
-        if lastWhisper then
+        if whisp then
             self:whisperDo(t, dt)
         else
             self:loudDo(t, dt)
@@ -174,7 +233,7 @@ function this:createHUDPanel(peer)
     p.p:set_x(rhpanel:w() / 2 + rhpanel:x() - width / 2)
     p.p:set_y(rhpanel:h() / 2 + rhpanel:y() - namepanel:h() / 2)
     p.p:set_w(width)
-    p.p:set_h(namepanel:h() * 2 + 5)
+    p.p:set_h(namepanel:h())
     p.c = p.p:text{
         name = "test",
         align = "center",
@@ -212,16 +271,6 @@ function this:createPanels()
     end
 end
 
-function this:__addpeer(i)
-    self.units = {}
-    self:createHUDPanel(i)
-end
-
-function this:__removepeer(i)
-    self.units = {}
-    self:destroyHUDPanel(i)
-end
-
 function this:__cleanup(carry)
     jhud.log("Cleanup called")
     for i = 1, 4 do
@@ -234,13 +283,12 @@ end
 this.TICKRATE = 10
 
 function this:__init()
-    self.amounts = {}
+    self.amounts = {whisper = jhud.whisper}
     self.lastUpdateT = 0
     self.diffT = 1 / self.TICKRATE
     if jhud.net and not jhud.net:isServer() then
         jhud.net:hook("jhud.suspct.amounts", function(data)
             self.amounts = jhud.deserialize(data)
-            jhud.pt(self.amounts, 3)
         end)
     end
 end

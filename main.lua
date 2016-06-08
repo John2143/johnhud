@@ -21,11 +21,15 @@ function jhud.pt(tab, deep, tabdepth)
     local longestindex = 0
     for i,v in pairs(tab) do
         if tostring(i):len() > longestindex then
-            longestindex = tostring(i):len()
+            longestindex = tostring(i):len() + (type(i) == "string" and 2 or 0)
         end
     end
     for i,v in pairs(tab) do
-        jhud.log(tabdepth, tostring(i) .. string.rep(" ", longestindex - tostring(i):len()), "::", v)
+        if type(i) == "string" then
+            jhud.log(tabdepth, '"' .. i .. '"' .. string.rep(" ", longestindex - i:len()), "::", v)
+        else
+            jhud.log(tabdepth, tostring(i) .. string.rep(" ", longestindex - tostring(i):len()), "::", v)
+        end
         if deep and deep > 0 and type(v) == "table" then
             jhud.pt(v, deep - 1, tabdepth .. "  ")
         end
