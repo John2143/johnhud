@@ -26,7 +26,14 @@ jhud.serialize = function(data)
 end
 
 jhud.deserialize = function(data)
-    local tab = json.decode(data or "{}")
+    local tab
+    local succ, err = pcall(function()
+        tab = json.decode(data or "{}")
+    end)
+    if not succ then
+        tab = {}
+        jhud.log("JSON sucks Asseaegaseg", err)
+    end
 
     local function fixJSON(new, tab)
         for i,v in pairs(tab) do
