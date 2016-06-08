@@ -1,3 +1,6 @@
+jhud.wmod("net")
+jhud.rlib("file") --only if net
+
 local function pct(n)
     return math.floor(n*100)
 end
@@ -71,17 +74,17 @@ function this:__update(t, dt)
                     end
                 end
             end
-            if update and self.lastUpdateT + self.diffT < t then
+            if jhud.net and update and self.lastUpdateT + self.diffT < t then
                 jhud.net("jhud.suspct.amounts", jhud.serialize(self.amounts), true)
                 self.lastUpdateT = t
             end
         end
 
         local suspicionAmount = self.amounts[jhud.net:getPeerID()] or {}
-
         for i = 1, 5 do
-            if suspicionAmount[i] then
-                self.textpanels[i]:set_text(pct(suspicionAmount[i]).."%")
+            local v = suspicionAmount[i]
+            if v then
+                self.textpanels[i]:set_text(pct(v).."%")
                 self.textpanels[i]:set_color(math.lerp(
                     Color(0, .8, .8),
                     Color(.8, .2, 0),
@@ -101,9 +104,10 @@ function this:__init()
     self.amounts = {}
     self.lastUpdateT = 0
     self.diffT = 1 / self.TICKRATE
-    if not jhud.net:isServer() then
+    if jhud.net and not jhud.net:isServer() then
         jhud.net:hook("jhud.suspct.amounts", function(data)
             self.amounts = jhud.deserialize(data)
+            jhud.pt(self.amounts, 3)
         end)
     end
 end
