@@ -108,12 +108,9 @@ jhud.options = {
                                 --If the chat module is not active, it will display a S
         },
         suspct = {              --Stealth percent indicator
-            show100for = 4,     --How long to keep the 100% on your hud
             num = 5,            --Max number of counters at once
-            onlyshowyou = true, --Only shows suspicion data for people who are
-                                -- detecting you. When this is true, show100for
-                                -- is automatically 0 because there is no way to
-                                -- know who was detected
+            showDetection = true,   --Show the detection level of all players (in the center of their hp)
+            showHP = true,   --Show the HP of all players
         },
         chat = {
             showemotes = true,
