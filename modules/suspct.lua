@@ -1,4 +1,5 @@
 jhud.wmod("net")
+jhud.rmod("assault") -- only for jhud.whisper
 jhud.rlib("file") --only if net
 
 local function pct(n)
@@ -12,7 +13,6 @@ function this:createCriminalTable()
             tab[k.peer_id] = {[-1] = 0}
         end
     end
-    tab.whisper = jhud.whisper
     return tab
 end
 
@@ -74,8 +74,8 @@ function this:associateUnitsWithIDs()
     local update = false
     if self.units then
         for i,v in ipairs(managers.criminals._characters) do
-            if v.peer_id and v.unit then
-                if not self.units[v.peer_id] or self.units[v.peer_id].unit ~= v.unit then
+            if v.peer_id and v.peer_id > 0 and v.unit then
+                if self.units[v.peer_id] ~= v.unit:character_damage() then
                     update = true
                 end
             end
@@ -85,20 +85,23 @@ function this:associateUnitsWithIDs()
     if not update then return end
 
     jhud.log("refreshing units")
-    self:createHUDPanels()
     self.units = {}
+    self.unitst = {}
     for i = 1, 4 do
-        local d
         for k,v in ipairs(managers.criminals._characters) do
             if v.peer_id == i then
-                jhud.log("found", i, v.peer_id, v.name)
-                d = v break
+                jhud.log(k, v)
+                self.unitst[i] = v.unit
+                self.units[i] = v.unit:character_damage()
+                jhud.pt(v)
             end
         end
-        if d then
-            self.units[i] = {unit = d.unit, dam = d.unit:character_damage()}
-        end
     end
+    jhud.pt(self.units)
+
+    --jhud.pt(self.units, 2)
+    --Associate the units with HUD IDs too
+    self:createHUDPanels()
 end
 
 function this:networkAmounts(newAmounts, rateLimit, t)
@@ -107,7 +110,7 @@ function this:networkAmounts(newAmounts, rateLimit, t)
     local update = false
     for i,v in ipairs(oldAmounts) do
         for x,k in pairs(v) do
-            if self.amounts[i][x] ~= k then
+            if not self.amounts[i] or self.amounts[i][x] ~= k then
                 update = true
             end
         end
@@ -118,7 +121,6 @@ function this:networkAmounts(newAmounts, rateLimit, t)
     end
 end
 
-local lastHasArmor = {}
 local function fmt(num)
     return ("%.0f"):format(num)
 end
@@ -130,31 +132,30 @@ end
 function this:loudDo(t, dt)
     if self.config.showHP then
         if jhud.net:isServer() then
-            self:associateUnitsWithIDs()
             local amounts = self:createCriminalTable()
             for i,v in pairs(self.units) do
-                amounts[i] = {}
-                amounts[i].hp = self.units[i].dam:get_real_health() * 10
-                amounts[i].armor = self.units[i].dam:get_real_armor() * 10
-                amounts[i].maxArmor = self.units[i].dam:_max_armor() * 10
-                amounts[i].maxHP = self.units[i].dam:_max_health() * 10
+                --amounts[i] = {}
+                amounts[i].hp       = v:get_real_health() * 10
+                amounts[i].armor    = v:get_real_armor()  * 10
+                amounts[i].maxArmor = v:_max_armor()      * 10
+                amounts[i].maxHP    = v:_max_health()     * 10
             end
             self:networkAmounts(amounts)
-            --jhud.pt(self.units, 2)
-            --jhud.pt(self.amounts, 4)
         end
+
+        jhud.pt(self.amounts)
+
         for i,v in ipairs(self.HUDPanels) do
             local amt = self.amounts[i]
-            if amt then --should always be true
+            if amt and amt.armor then --should always be true
                 local hasArmor = --Actually show armor
                     amt.armor > 0 and
                     not floatEqual(amt.armor, amt.maxArmor)
-
-                if lastHasArmor[i] ~= hasArmor then
-                    lastHasArmor[i] = hasArmor
-                    v.c:set_color(hasArmor and Color("ffffff") or Color("00dd33"))
-                end
-                v.c:set_text(hasArmor and fmt(amt.armor) or fmt(amt.hp))
+                v.c:set_color(hasArmor and
+                    math.lerp(Color("666666"), Color("ffffff"), amt.armor / amt.maxArmor) or
+                    math.lerp(Color("aa3333"), Color("00dd33"), amt.hp / amt.maxHP)
+                )
+                v.c:set_text(floatEqual(amt.hp, 0) and "" or hasArmor and fmt(amt.armor) or fmt(amt.hp))
             end
         end
     end
@@ -172,35 +173,37 @@ function this:__igupdate(t, dt)
     if not self.panel then
         self:createPanels()
     end
-    if self.textpanels then
-        local whisp = self.amounts.whisper
-        if lastWhisper ~= whisp then
-            self.units = nil
-            lastWhisper = whisp
-            for i,v in pairs(self.textpanels) do
-                v:set_visible(whisp)
-            end
-            local showPanels =
-                whisp and self.config.showDetection or
-                not whisp and self.config.showHP
+    local whisp = jhud.whisper
+    if lastWhisper ~= whisp then
+        lastWhisper = whisp
+        for i,v in pairs(self.textpanels) do
+            v:set_visible(whisp)
+        end
+        local showPanels =
+            whisp and self.config.showDetection or
+            not whisp and self.config.showHP
 
-            for i,v in pairs(self.HUDPanels) do
-                v.c:set_visible(showPanels)
-                v.c:set_color(Color("00aa33"))
-            end
+        for i,v in pairs(self.HUDPanels) do
+            v.c:set_visible(showPanels)
+            v.c:set_text("...")
         end
-        if whisp then
-            self:whisperDo(t, dt)
-        else
-            self:loudDo(t, dt)
-        end
+        self.amounts = {}
+    end
+
+    self:associateUnitsWithIDs()
+    if whisp then
+        self:whisperDo(t, dt)
+    else
+        self:loudDo(t, dt)
     end
 end
 
 function this:destroyHUDPanel(peer)
     if self.HUDPanels[peer] then
-        self.HUDPanels[peer].p:destroy_children()
-        self.HUDPanels[peer].p:destroy()
+        jhud.log("Destroying panel", peer, self.HUDPanels[peer].p)
+        jhud.pt(self.HUDPanels[peer])
+        self.HUDPanels[peer].p:set_visible(false)
+        self.HUDPanels[peer].c:set_visible(false)
 
         self.HUDPanels[peer] = nil
     end
@@ -227,7 +230,7 @@ function this:createHUDPanel(peer)
     local rhpanel = plpanel:child("radial_health_panel")
     local namepanel = panel:child("name")
 
-    local p = {p = plpanel:panel()}
+    local p = {p = plpanel:panel{name = "suspctparent" .. peer}}
     self.HUDPanels[peer] = p
     local width = 100
     p.p:set_x(rhpanel:w() / 2 + rhpanel:x() - width / 2)
@@ -235,7 +238,7 @@ function this:createHUDPanel(peer)
     p.p:set_w(width)
     p.p:set_h(namepanel:h())
     p.c = p.p:text{
-        name = "test",
+        name = "textsuspct" .. peer,
         align = "center",
         font = tweak_data.hud_present.text_font,
         font_size = namepanel:font_size()
@@ -244,7 +247,6 @@ function this:createHUDPanel(peer)
 end
 
 function this:createHUDPanels()
-    self.HUDPanels = {}
     for i = 1, 4 do
         self:createHUDPanel(i)
     end
@@ -252,7 +254,6 @@ end
 
 function this:createPanels()
     self:createHUDPanels()
-
     local h = self.config.num*textheight
     self.panel = jhud.createPanel()
     self.panel:set_x((jhud.resolution.x - 100)/2)
@@ -276,14 +277,17 @@ function this:__cleanup(carry)
     for i = 1, 4 do
         self:destroyHUDPanel(i)
     end
-    self.panel:destroy_children()
-    self.panel:destroy()
+    carry.panel = self.panel
+    carry.textpanels = self.textpanels
 end
 
 this.TICKRATE = 10
 
-function this:__init()
-    self.amounts = {whisper = jhud.whisper}
+function this:__init(carry)
+    self.panel = carry.panel
+    self.textpanels = carry.textpanels
+    self.HUDPanels = {}
+    self.amounts = {}
     self.lastUpdateT = 0
     self.diffT = 1 / self.TICKRATE
     if jhud.net and not jhud.net:isServer() then

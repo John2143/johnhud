@@ -577,6 +577,7 @@ function this:__init(carry)
         if not jhud.whisper then
             self:dramaIn()
         else
+            self:dramaOut()
         end
         self:updateTagTextNext()
     end)
