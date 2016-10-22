@@ -74,8 +74,12 @@ function this:associateUnitsWithIDs()
     local update = false
     if self.units then
         for i,v in ipairs(managers.criminals._characters) do
-            if v.peer_id and v.peer_id > 0 and v.unit then
-                if self.units[v.peer_id] ~= v.unit:character_damage() then
+            if v.peer_id and v.peer_id > 0 then
+                if not(v.unit and v.unit.character_damage) then
+                    --TODO figure out the real reason for the crash
+                    update = false
+                    break
+                elseif self.units[v.peer_id] ~= v.unit:character_damage() then
                     update = true
                 end
             end
@@ -86,12 +90,10 @@ function this:associateUnitsWithIDs()
 
     jhud.log("refreshing units")
     self.units = {}
-    self.unitst = {}
     for i = 1, 4 do
         for k,v in ipairs(managers.criminals._characters) do
             if v.peer_id == i then
                 jhud.log(k, v)
-                self.unitst[i] = v.unit
                 self.units[i] = v.unit:character_damage()
                 jhud.pt(v)
             end
@@ -131,23 +133,19 @@ end
 
 function this:loudDo(t, dt)
     if self.config.showHP then
-        if jhud.net:isServer() then
-            local amounts = self:createCriminalTable()
-            for i,v in pairs(self.units) do
-                --amounts[i] = {}
-                amounts[i].hp       = v:get_real_health() * 10
-                amounts[i].armor    = v:get_real_armor()  * 10
-                amounts[i].maxArmor = v:_max_armor()      * 10
-                amounts[i].maxHP    = v:_max_health()     * 10
-            end
-            self:networkAmounts(amounts)
-        end
-
-        jhud.pt(self.amounts)
+		local amounts = {}
+		for i,v in pairs(self.units) do
+			amounts[i] = {}
+			amounts[i].hp       = v:get_real_health() * 10
+			amounts[i].armor    = v:get_real_armor()  * 10
+			amounts[i].maxArmor = v:_max_armor()      * 10
+			amounts[i].maxHP    = v:_max_health()     * 10
+		end
+		-- jhud.pt(amounts, 100)	
 
         for i,v in ipairs(self.HUDPanels) do
-            local amt = self.amounts[i]
-            if amt and amt.armor then --should always be true
+            local amt = amounts[i]
+            if amt then --should always be true
                 local hasArmor = --Actually show armor
                     amt.armor > 0 and
                     not floatEqual(amt.armor, amt.maxArmor)
@@ -185,7 +183,6 @@ function this:__igupdate(t, dt)
 
         for i,v in pairs(self.HUDPanels) do
             v.c:set_visible(showPanels)
-            v.c:set_text("...")
         end
         self.amounts = {}
     end

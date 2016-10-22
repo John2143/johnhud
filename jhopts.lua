@@ -110,7 +110,7 @@ jhud.options = {
         suspct = {              --Stealth percent indicator
             num = 5,            --Max number of counters at once
             showDetection = true,   --Show the detection level of all players (in the center of their hp)
-            showHP = true,   --Show the HP of all players
+            showHP = false,   --Show the HP of all players [broken]
         },
         chat = {
             showemotes = true,
