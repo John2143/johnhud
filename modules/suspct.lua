@@ -75,7 +75,7 @@ function this:associateUnitsWithIDs()
     if self.units then
         for i,v in ipairs(managers.criminals._characters) do
             if v.peer_id and v.peer_id > 0 then
-                if not(v.unit and v.unit.character_damage) then
+                if not(alive(v.unit) then
                     --TODO figure out the real reason for the crash
                     update = false
                     break
